@@ -1,0 +1,158 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+}
+
+@theme static {
+  /* Surfaces: the dark maroon of the HackSC deck. --color-paper matches the band render's backdrop. */
+  --color-paper: #211313;
+  --color-paper-raised: #2c1b1a;
+  --color-paper-sunken: #180d0d;
+  --color-rule: #3f2a27;
+
+  --color-ink: #f6eee6;
+  --color-ink-muted: #bfaea5;
+  --color-ink-faint: #85716a;
+
+  /* The one accent: trO gold, sampled from the wordmark. */
+  --color-accent: #f3db7c;
+  --color-accent-deep: #c9a542;
+  --color-accent-wash: #4a3a1f;
+
+  /* Competitors and comparisons: thin and muted. */
+  --color-rival: #8d7b74;
+
+  /* The band itself, in drawn diagrams. */
+  --color-band: #6e241d;
+  --color-band-light: #93392c;
+
+  /* The crowd on the problem slide, near to far. */
+  --color-crowd-near: #3a1d1a;
+  --color-crowd-mid: #5c2b25;
+  --color-crowd-far: #4a2622;
+
+  /* The cardinal glow behind the wordmark. Imagery only, never text or controls. */
+  --color-ember: #9b2b22;
+
+  --text-poster: 240px;
+  --text-poster--line-height: 0.86;
+  --text-display: 168px;
+  --text-display--line-height: 0.9;
+  --text-headline: 88px;
+  --text-headline--line-height: 0.98;
+  --text-title: 60px;
+  --text-title--line-height: 1.04;
+  --text-lede: 44px;
+  --text-lede--line-height: 1.16;
+  --text-point: 36px;
+  --text-point--line-height: 1.18;
+  --text-body: 30px;
+  --text-body--line-height: 1.32;
+  --text-caption: 25px;
+  --text-caption--line-height: 1.32;
+  --text-fineprint: 19px;
+  --text-fineprint--line-height: 1.35;
+
+  --spacing-stage-x: 112px;
+  --spacing-stage-y: 88px;
+  --spacing-gap: 72px;
+  --spacing-gap-sm: 32px;
+  --spacing-footer: 64px;
+
+  --radius-card: 22px;
+  --radius-chip: 999px;
+
+  --shadow-lift: 0 1px 2px rgb(0 0 0 / 0.25), 0 10px 30px -8px rgb(0 0 0 / 0.45);
+  --shadow-float: 0 2px 6px rgb(0 0 0 / 0.3), 0 30px 70px -14px rgb(0 0 0 / 0.6);
+  --shadow-glow: 0 0 40px 4px rgb(243 219 124 / 0.35);
+
+  --ease-drawn: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  html {
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 4px;
+  }
+}
+
+@utility stage {
+  width: 1920px;
+  height: 1080px;
+}
+
+@utility stage-gutter {
+  padding-inline: var(--spacing-stage-x);
+  padding-block: var(--spacing-stage-y) calc(var(--spacing-stage-y) + var(--spacing-footer));
+}
+
+@utility font-narrow {
+  font-stretch: 82%;
+}
+
+@utility figures-tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+@utility line-mask {
+  display: block;
+  overflow: hidden;
+  padding-block-end: 0.12em;
+  margin-block-end: -0.12em;
+}
+
+/* Fine film grain over the dark stage. Screen blend lightens specks instead of darkening. */
+@utility paper-grain {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='240' height='240'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 0.93  0 0 0 0 0.86  0 0 0 0.5 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  mix-blend-mode: screen;
+  opacity: 0.07;
+}
+
+/* The vertical ribbed glass from the HackSC title frames, as a soft overlay. */
+@utility ribbed-glass {
+  background-image: repeating-linear-gradient(90deg, rgb(255 255 255 / 0.035) 0 2px, transparent 2px 46px, rgb(0 0 0 / 0.12) 46px 64px);
+}
+
+@media print {
+  @page {
+    size: 1920px 1080px;
+    margin: 0;
+  }
+
+  html,
+  body {
+    background: var(--color-paper);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Chrome rasterizes box-shadow into a solid box in PDFs, so print relies on fills. */
+  *,
+  *::before,
+  *::after {
+    box-shadow: none !important;
+  }
+}
