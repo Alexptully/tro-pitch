@@ -49,7 +49,7 @@ prose=["How to read this sheet: blue numbers are typed-in assumptions, black num
  "Paying campuses (row 4) is our sales plan: USC pilots free in spring 2027 and converts in fall 2027, then LA-area campuses in 2028 and a national rollout in 2029.",
  "Seasonality (row 5) follows the academic calendar: almost no events in June and July, peaks in October and April. Each year's shares add to 100%.",
  "Band fleet purchases are cash, not EBITDA: we buy bands when a campus signs, then spread their cost over their useful life in COGS (row 11).",
- "SG&A rows 20 to 25 are monthly budgets typed in by year. Team pay covers three founders, plus one engineer from 2028 and two hires in 2029.",
+ "SG&A rows 20 to 25 are monthly budgets typed in by year. Team pay covers stipends for our five founders, plus one engineer from 2028 and two hires in 2029.",
  "Sources for comparables are on the deck's sources slide. Everything else is a team estimate, labeled as one."]
 for i,t in enumerate(prose): ws.cell(notes_r+i,1,t).font=BLACK
 
@@ -110,7 +110,7 @@ u=wb.create_sheet("Use of Funds")
 u["A1"]="Use of funds: where the $750K pre-seed goes, Jan 2027 to Dec 2028"; u["A1"].font=Font(name=F,bold=True,size=13)
 u["A2"]="Spending by category over the first 24 months, pulled from the Pro Forma sheet. Revenue earned in the same months becomes our reserve."; u["A2"].font=BLACK
 pf="'Pro Forma'"; a=L(FIRST); b=L(FIRST+23)
-cats=[("Team pay",[R['team']],"Three founders, then a first engineer in 2028"),
+cats=[("Team pay",[R['team']],"Stipends for our five founders, then a first engineer in 2028"),
       ("Product: firmware, certification and cloud",[R['eng'],R['cloud']],"Plus the FCC certification in the one-time row"),
       ("Band fleet and event operations",None,"Bands bought for each campus, plus COGS"),
       ("Campus sales and marketing",[R['sales']],"Demo events, travel and campus partnerships"),

@@ -6,7 +6,7 @@ This is the master brief for the deck. It sets what the deck must cover, the num
 
 ACAD 183, Product Management for Challenge-Based Innovation (Professor Michael Kanazawa), Fall 2026. Brightspace assignment "Final Venture Pitch", due December 1, 2026 at 5:00 PM. The specification is in the lecture slides (W11S22, "Assignment: Final Venture Idea Pitch"), because the syllabus says the latest slides hold assignment specs.
 
-Goal: an end-to-end pitch for a disruptive business concept, by a team of 2 to 4.
+Goal: an end-to-end pitch for a disruptive business concept, by a team of 2 to 4. Our team has five members (Alex, Cara, Grace, Alana and Shin), so confirm the team size with the professor.
 
 Required in the deck (10 to 12 slides):
 
@@ -77,5 +77,5 @@ The hackathon deck's "60 to 75% of people got their job through their network" a
 
 ## Placeholders the team fills in (`src/content/config.ts`)
 
-- Teammates' names and who presents which slides
+- Who presents which slides (a first guess is in place: Alex 1 to 2, Cara 3 to 4, Grace 5 to 7, Alana 8 to 9, Shin 10 to 12)
 - Links to the Google Sheet copy of the pro forma and the Figma file

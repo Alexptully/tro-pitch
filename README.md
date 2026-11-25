@@ -50,7 +50,7 @@ The address bar shows the slide number (`/#9`), so you can jump straight to the 
 
 ## Change the words and numbers
 
-- Team names, speakers and links: `src/content/config.ts`. Anything in square brackets, like `[TEAMMATE 2]`, still needs a real value.
+- Team names, speakers and links: `src/content/config.ts`. Anything in square brackets, like `[PRO FORMA SHEET LINK]`, still needs a real value.
 - Slide text and speaker notes: `src/content/content.ts`
 - Sources: `src/content/sources.ts`
 - The pro forma: change an assumption in `scripts/pro-forma/model.py` and the matching number in `src/content/proForma.ts`, then run `python3 scripts/pro-forma/build_xlsx.py` to rebuild the spreadsheet.
@@ -59,6 +59,6 @@ Before you share a change, run `npm run check`. It runs the type checker, the li
 
 ## Before we present
 
-- Fill in teammates' names and who presents what in `src/content/config.ts`.
+- Check who presents what in `src/content/config.ts` (it's a first guess).
 - Paste the share link of our Google Sheets copy of the pro forma into `proFormaLink`.
 - Read `brief.md`: it lists every team estimate in the pitch, so everyone can answer questions about them.

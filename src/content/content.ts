@@ -297,7 +297,7 @@ export const funds = {
   ],
   reserveLine: (cash: number) => `Revenue over the two years leaves ${dollarsShort(cash)} in the bank for a 2029 seed round.`,
   notes: [
-    `We're raising ${dollarsShort(useOfFunds.raise)} in pre-seed funding to cover 24 months. Half goes to the team: three founders, and our first engineer in 2028. The rest pays for firmware and FCC certification, the band fleet for each campus we sign, campus sales, and a legal review of consent law.`,
+    `We're raising ${dollarsShort(useOfFunds.raise)} in pre-seed funding to cover 24 months. Half goes to the team: stipends for the five of us, and our first engineer in 2028. The rest pays for firmware and FCC certification, the band fleet for each campus we sign, campus sales, and a legal review of consent law.`,
     `By December 2028 that gets us ${useOfFunds.milestoneCampuses} paying campuses and a ${dollarsShort(runRate)} annual run rate, and the revenue we earn along the way leaves about ${dollarsShort(useOfFunds.cashAtMilestone)} in the bank going into a seed round.`,
   ],
 };

@@ -112,7 +112,7 @@ const runway = months.slice(0, 24);
 export const useOfFunds = {
   raise: assumptions.raise,
   categories: [
-    { id: "team", label: "Team", detail: "Three founders, then our first engineer in 2028", amount: sumOf(runway, "team") },
+    { id: "team", label: "Team", detail: "Stipends for our five founders, then our first engineer in 2028", amount: sumOf(runway, "team") },
     { id: "product", label: "Product", detail: "Firmware, FCC certification and cloud", amount: sumOf(runway, "product") },
     { id: "fleet", label: "Bands and event operations", detail: "A fleet of bands for every campus we sign", amount: sumOf(runway, "fleet") + sumOf(runway, "cogs") },
     { id: "sales", label: "Campus sales", detail: "Demo nights, travel and partnerships", amount: sumOf(runway, "sales") },
