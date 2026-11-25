@@ -3,7 +3,7 @@
 import { motion } from "motion/react";
 import { easeDrawn } from "@/lib/motion";
 
-/** The Trojan network: gold nodes joined by thin lines. Laid out from a fixed seed so every render matches. */
+/** The network of people we meet: gold nodes joined by thin lines. Laid out from a fixed seed so every render matches. */
 type NetworkProps = {
   width: number;
   height: number;
@@ -24,7 +24,7 @@ function seeded(seed: number) {
   };
 }
 
-function layout(width: number, height: number, count: number): Node[] {
+export function layout(width: number, height: number, count: number): Node[] {
   const random = seeded(42);
   return Array.from({ length: count }, (_, index) => ({
     x: 40 + random() * (width - 80),

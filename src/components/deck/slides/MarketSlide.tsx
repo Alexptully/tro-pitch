@@ -60,7 +60,7 @@ export function MarketSlide({ step }: SlideProps) {
         <RingLabel key={index} index={index} />
       ))}
       <motion.div variants={fadeReveal(0.6)} className="absolute top-[935px] left-[112px]">
-        <Caption>Every ring is priced at {market.priceNote}. Rings are not drawn to scale.</Caption>
+        <Caption>{market.footnote}</Caption>
       </motion.div>
     </div>
   );

@@ -48,8 +48,8 @@ function SpendList() {
 
 function Milestones() {
   return (
-    <motion.div variants={fadeReveal(1.2, 16)} className="flex items-start gap-24 border-t border-rule pt-8">
-      <h3 className="w-[300px] text-point font-semibold text-accent">{funds.milestonesLabel}</h3>
+    <motion.div variants={fadeReveal(1.2, 16)} className="flex items-start gap-20 border-t border-rule pt-8">
+      <h3 className="w-[200px] text-point font-semibold text-accent">{funds.milestonesLabel}</h3>
       {funds.milestones.map((milestone) => (
         <div key={milestone.caption}>
           <p className="text-title font-semibold text-ink figures-tabular">{milestone.value}</p>

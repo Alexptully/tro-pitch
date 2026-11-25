@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, LinkedinLogo, EnvelopeSimple, Globe, Phone, Microphone, FileText } from "@phosphor-icons/react";
+import { Check, CheckCircle, LinkedinLogo, EnvelopeSimple, Globe, Phone, Microphone, FileText } from "@phosphor-icons/react";
 import { AnimatePresence, motion } from "motion/react";
 import { solution } from "@/content/content";
 import { easeDrawn } from "@/lib/motion";
@@ -38,6 +38,46 @@ function TapScene() {
       <SceneFrame>
         <SlidingBand from={-560} to={-152} />
         <SlidingBand from={560} to={152} flip />
+      </SceneFrame>
+    </div>
+  );
+}
+
+/** A gate reader: a pillar with a contact pad that lights gold when a band checks in. */
+function GateReader() {
+  return (
+    <g transform="translate(250 0)">
+      <rect x={-70} y={-230} width={140} height={460} rx={26} fill="var(--color-paper-raised)" />
+      <rect x={-46} y={-190} width={92} height={60} rx={10} fill="var(--color-paper-sunken)" />
+      <motion.circle
+        cy={-160}
+        r={14}
+        initial={{ fill: "var(--color-ink-faint)" }}
+        animate={{ fill: "var(--color-accent)", transition: { delay: 1.2, duration: 0.3 } }}
+      />
+      <circle r={44} fill="none" stroke="var(--color-ink-faint)" strokeWidth={3} />
+      <circle r={26} fill="none" stroke="var(--color-ink-faint)" strokeWidth={3} />
+    </g>
+  );
+}
+
+function CheckInScene() {
+  const { gate } = solution;
+  return (
+    <div className="relative">
+      <motion.div className="absolute inset-0 flex items-center justify-center" style={{ x: 250 }} initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { delay: 1.1 } }}>
+        <TapPulse size={420} ripples={2} nodeRadius={0} delay={1.1} />
+      </motion.div>
+      <motion.div variants={fadeReveal(1.4, 12)} className="absolute top-[150px] left-[130px] flex items-center gap-3 rounded-chip bg-accent px-6 py-3 text-paper">
+        <CheckCircle size={30} weight="fill" aria-hidden />
+        <span className="text-caption font-semibold">{gate.label}</span>
+      </motion.div>
+      <motion.p variants={fadeReveal(1.6)} className="absolute top-[222px] left-[140px] text-caption text-ink-muted">
+        {gate.event}
+      </motion.p>
+      <SceneFrame>
+        <GateReader />
+        <SlidingBand from={-560} to={100} />
       </SceneFrame>
     </div>
   );
@@ -98,11 +138,11 @@ function ReflectScene() {
   );
 }
 
-const scenes = [TapScene, InsightsScene, ReflectScene];
+const scenes = [CheckInScene, TapScene, InsightsScene, ReflectScene];
 
 function StepList({ active }: { active: number }) {
   return (
-    <ol className="flex w-[700px] flex-col gap-10">
+    <ol className="flex w-[700px] flex-col gap-7">
       {solution.steps.map((item, index) => {
         const isActive = index === active;
         return (
@@ -111,7 +151,7 @@ function StepList({ active }: { active: number }) {
               <span className={isActive ? "text-accent" : ""}>{item.number}</span>
               {item.name}
             </p>
-            <p className="mt-3 pl-[58px] text-point">{item.line}</p>
+            <p className="mt-2 pl-[58px] text-point">{item.line}</p>
             {isActive && (
               <motion.p initial="enter" animate="present" variants={fadeReveal(0.2)} className="mt-3 pl-[58px] text-caption text-ink-muted">
                 {item.detail}
@@ -208,6 +248,50 @@ function AfterTheEvent() {
   );
 }
 
+function VersionCard({ option, index }: { option: (typeof solution.versions.options)[number]; index: number }) {
+  const personal = option.id === "personal";
+  return (
+    <motion.div variants={fadeReveal(0.3 + index * 0.25, 24)} className={`flex flex-1 flex-col rounded-card px-12 py-10 ${personal ? "bg-paper-raised shadow-float" : "bg-paper-sunken"}`}>
+      <div className="flex h-[210px] items-center justify-center">
+        {personal ? (
+          <BandRender className="w-[400px]" />
+        ) : (
+          <svg aria-hidden viewBox="-170 -70 340 140" width={420} height={173} className="overflow-visible">
+            <BandGlyph />
+          </svg>
+        )}
+      </div>
+      <h3 className={`mt-4 text-title font-semibold ${personal ? "text-accent" : "text-ink"}`}>{option.name}</h3>
+      <p className="mt-2 text-body text-ink-muted">{option.summary}</p>
+      <p className="mt-6 flex items-baseline gap-4">
+        <span className="text-headline font-semibold whitespace-nowrap text-ink figures-tabular">{option.price}</span>
+        <span className="text-caption text-ink-muted">{option.payer}</span>
+      </p>
+      <ul className="mt-6 space-y-3">
+        {option.points.map((point) => (
+          <li key={point} className="flex items-start gap-3 text-body text-ink">
+            <Check size={26} weight="bold" className="mt-1 shrink-0 text-accent" aria-hidden />
+            {point}
+          </li>
+        ))}
+      </ul>
+    </motion.div>
+  );
+}
+
+function TwoVersions() {
+  return (
+    <StepView className="flex flex-col">
+      <Headline text={solution.versions.headline} />
+      <div className="mt-12 flex gap-12">
+        {solution.versions.options.map((option, index) => (
+          <VersionCard key={option.id} option={option} index={index} />
+        ))}
+      </div>
+    </StepView>
+  );
+}
+
 /** Label boxes in the right column, with leader lines to points on the render (render at left 300, top 240, 900 wide). */
 const calloutLayout = {
   esp32: { label: "top-[250px] left-[1290px]", line: "M 1270 300 L 1130 300 L 985 585" },
@@ -246,14 +330,17 @@ function UnderTheHood() {
   );
 }
 
+const HOW_STEPS = solution.steps.length;
+const laterViews = [AfterTheEvent, TwoVersions, UnderTheHood];
+
 function SolutionView({ step }: { step: number }) {
-  if (step <= 2) return <HowItWorks step={step} />;
-  if (step === 3) return <AfterTheEvent />;
-  return <UnderTheHood />;
+  if (step < HOW_STEPS) return <HowItWorks step={step} />;
+  const View = laterViews[step - HOW_STEPS];
+  return <View />;
 }
 
 export function SolutionSlide({ step }: SlideProps) {
-  const group = step <= 2 ? "how" : `step-${step}`;
+  const group = step < HOW_STEPS ? "how" : `step-${step}`;
   return (
     <AnimatePresence mode="wait">
       <SolutionView key={group} step={step} />
