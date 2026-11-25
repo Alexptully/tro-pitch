@@ -1,168 +1,294 @@
-import json
+"""Writes trO-pro-forma.xlsx from the inputs in model.py, with live formulas so the sheet recalculates when an input changes."""
+import os
+import sys
+
 from openpyxl import Workbook
-from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
-from openpyxl.utils import get_column_letter as L
 from openpyxl.comments import Comment
+from openpyxl.styles import Alignment, Font, PatternFill
+from openpyxl.utils import get_column_letter as col_letter
 
-exec(open(__file__.replace('build_xlsx.py','model.py')).read().split('rows=[]')[0])  # A, MONTHS, sga()
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import model  # noqa: E402
 
-wb=Workbook(); ws=wb.active; ws.title="Pro Forma"
-F="Arial"; BLUE=Font(name=F,color="0000FF"); BLACK=Font(name=F); BOLD=Font(name=F,bold=True)
-YEL=PatternFill("solid",fgColor="FFFF00"); HEAD=PatternFill("solid",fgColor="E8E2D6")
-CUR='$#,##0;($#,##0);-'; CUR2='$#,##0.00;($#,##0.00);-'; NUM='#,##0;(#,##0);-'; PCT='0.0%;(0.0%);-'
-NM=len(MONTHS); FIRST=2; LASTC=FIRST+NM-1
-YCOL={0:LASTC+1,1:LASTC+2,2:LASTC+3}
+A, MONTHS, N = model.A, model.MONTHS, model.N
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-ws["A1"]="Guerilla Financial Pro Forma: trO (team estimates, monthly, Jan 2027 to Dec 2029)"; ws["A1"].font=Font(name=F,bold=True,size=13)
-ws.cell(2,1,"").font=BOLD
-for i,m in enumerate(MONTHS):
-    c=ws.cell(2,FIRST+i,m); c.font=BOLD; c.fill=HEAD; c.alignment=Alignment(horizontal="center")
-for y,col in YCOL.items():
-    c=ws.cell(2,col,f"FY {2027+y}"); c.font=BOLD; c.fill=HEAD; c.alignment=Alignment(horizontal="center")
+FONT = "Arial"
+BLUE = Font(name=FONT, color="0000FF")
+BLACK = Font(name=FONT)
+GREEN = Font(name=FONT, color="008000")
+BOLD = Font(name=FONT, bold=True)
+YELLOW = PatternFill("solid", fgColor="FFFF00")
+HEAD = PatternFill("solid", fgColor="E8E2D6")
+CUR = "$#,##0;($#,##0);-"
+CUR2 = "$#,##0.00;($#,##0.00);-"
+NUM = "#,##0;(#,##0);-"
+PCT = "0.0%;(0.0%);-"
 
-R=dict(rev_h=3,camp=4,season=5,ae=6,price=7,rev=8, cogs_h=10,band=11,ai=12,logi=13,supp=14,cogs=15,gp=16,gm=17,
-       sga_h=19,team=20,eng=21,cloud=22,sales=23,legal=24,one=25,sga=26, ebitda=28,
-       cash_h=30,new=31,fleet=32,fund=33,flow=34,endcash=35, asum_h=37)
-# Assumption cells
-AS=[("price","Price per attendee, per event (paid by the organizer)",A['price_per_attendee_event'],CUR2,"Team estimate. Comparable: Captag rents event wearables at $22 to $33 per device (Skift Meetings)."),
-    ("aepc","Attendee-events per campus, per year",A['attendee_events_per_campus_year'],NUM,"Team estimate: career fairs, alumni mixers and club recruiting nights at one university."),
-    ("unit","Band unit cost",A['band_unit_cost'],CUR2,"Midpoint of the $4 to $7 per reusable unit estimate from our HackSC prototype."),
-    ("uses","Events per band before replacement",A['band_uses'],NUM,"Team estimate."),
-    ("aic","AI transcription and summaries, per attendee-event",A['ai_cost_per_attendee_event'],CUR2,"Team estimate. Only charged when both people agree to notes."),
-    ("logc","Cleaning, charging and shipping, per attendee-event",A['logistics_per_attendee_event'],CUR2,"Team estimate."),
-    ("supc","Event-day support, per attendee-event",A['support_per_attendee_event'],CUR2,"Team estimate."),
-    ("bpc","Bands shipped to each new campus",A['bands_per_new_campus'],NUM,"Team estimate: covers the largest single event on a campus."),
-    ("pilot","Bands for the free USC pilot (Feb 2027)",A['pilot_bands'],NUM,"Team estimate."),
-    ("raise","Pre-seed raise (Jan 2027)",750000,CUR,"The ask on our use of funds slide."),]
-ws.cell(R['asum_h'],1,"Overall Model Assumptions").font=BOLD
-ws.cell(R['asum_h'],2,"Value").font=BOLD; ws.cell(R['asum_h'],3,"Why we believe it").font=BOLD
-ref={}
-for k,(key,label,val,fmt,why) in enumerate(AS):
-    r=R['asum_h']+1+k
-    ws.cell(r,1,label).font=BLACK
-    c=ws.cell(r,2,val); c.font=BLUE; c.fill=YEL; c.number_format=fmt
-    ws.cell(r,3,why).font=BLACK
-    ref[key]=f"$B${r}"
-notes_r=R['asum_h']+len(AS)+2
-prose=["How to read this sheet: blue numbers are typed-in assumptions, black numbers are formulas. Yellow cells are the levers to change.",
- "Hero revenue: organizers (career centers, alumni groups, student orgs) pay a flat fee for every attendee who wears a trO band at their event. Students never pay.",
- "Paying campuses (row 4) is our sales plan: USC pilots free in spring 2027 and converts in fall 2027, then LA-area campuses in 2028 and a national rollout in 2029.",
- "Seasonality (row 5) follows the academic calendar: almost no events in June and July, peaks in October and April. Each year's shares add to 100%.",
- "Band fleet purchases are cash, not EBITDA: we buy bands when a campus signs, then spread their cost over their useful life in COGS (row 11).",
- "SG&A rows 20 to 25 are monthly budgets typed in by year. Team pay covers stipends for our five founders, plus one engineer from 2028 and two hires in 2029.",
- "Sources for comparables are on the deck's sources slide. Everything else is a team estimate, labeled as one."]
-for i,t in enumerate(prose): ws.cell(notes_r+i,1,t).font=BLACK
+FIRST = 2
+LAST = FIRST + N - 1
+YEAR_COL = {y: LAST + 1 + y for y in range(3)}
 
-def row(r,label,bold=False):
-    c=ws.cell(r,1,label); c.font=BOLD if bold else BLACK
-for k,label in [("rev_h","Revenue"),("cogs_h","Expenses (Cost of Goods Sold)"),("sga_h","SG&A (Operating Expenses)"),("cash_h","Cash")]:
-    row(R[k],label,True)
-labels=dict(camp="Paying campuses (end of month)",season="Share of the year's events this month",ae="Attendee-events (bands worn)",price="Price per attendee-event",rev="Revenue",
- band="Band wear (unit cost spread over its uses)",ai="AI notes",logi="Cleaning, charging and shipping",supp="Event-day support",cogs="Total COGS",gp="Gross profit",gm="Gross margin",
- team="Team pay",eng="Firmware and hardware engineering",cloud="Cloud and software",sales="Campus sales and marketing",legal="Legal, privacy and insurance",one="One-time: consent law review (Mar 2027), FCC certification (Jun 2027)",sga="Total SG&A",
- ebitda="EBITDA",new="New campuses signed",fleet="Band fleet purchases",fund="Funding raised",flow="Net cash flow",endcash="Ending cash")
-for k,v in labels.items(): row(R[k],v, k in ("rev","cogs","gp","sga","ebitda","endcash"))
+wb = Workbook()
+ws = wb.active
+ws.title = "Pro Forma"
+ws["A1"] = "Guerilla Financial Pro Forma: trO (team estimates, monthly, Jan 2027 to Dec 2029)"
+ws["A1"].font = Font(name=FONT, bold=True, size=13)
+for i, month in enumerate(MONTHS):
+    cell = ws.cell(2, FIRST + i, month)
+    cell.font, cell.fill, cell.alignment = BOLD, HEAD, Alignment(horizontal="center")
+for y, column in YEAR_COL.items():
+    cell = ws.cell(2, column, f"FY {model.YEARS[y]}")
+    cell.font, cell.fill, cell.alignment = BOLD, HEAD, Alignment(horizontal="center")
 
-for i in range(NM):
-    col=FIRST+i; C=L(col); P=L(col-1)
-    def put(k,val,fmt,font=BLACK):
-        c=ws.cell(R[k],col,val); c.number_format=fmt; c.font=font
-    s=sga(i)
-    put("camp",A['campuses'][i],NUM,BLUE); put("season",A['season'][i%12],PCT,BLUE)
-    put("ae",f"={C}{R['camp']}*{ref['aepc']}*{C}{R['season']}",NUM)
-    put("price",f"={ref['price']}",CUR2)
-    put("rev",f"={C}{R['ae']}*{C}{R['price']}",CUR)
-    put("band",f"={C}{R['ae']}*{ref['unit']}/{ref['uses']}",CUR)
-    put("ai",f"={C}{R['ae']}*{ref['aic']}",CUR); put("logi",f"={C}{R['ae']}*{ref['logc']}",CUR); put("supp",f"={C}{R['ae']}*{ref['supc']}",CUR)
-    put("cogs",f"=SUM({C}{R['band']}:{C}{R['supp']})",CUR)
-    put("gp",f"={C}{R['rev']}-{C}{R['cogs']}",CUR)
-    put("gm",f"=IF({C}{R['rev']}=0,0,{C}{R['gp']}/{C}{R['rev']})",PCT)
-    for k in ("team","eng","cloud","sales","legal"): put(k,s[{"eng":"engineering"}.get(k,k)],CUR,BLUE)
-    put("one",s['one_time'],CUR,BLUE)
-    put("sga",f"=SUM({C}{R['team']}:{C}{R['one']})",CUR)
-    put("ebitda",f"={C}{R['gp']}-{C}{R['sga']}",CUR)
-    put("new", f"=MAX({C}{R['camp']},0)" if i==0 else f"=MAX({C}{R['camp']}-{P}{R['camp']},0)",NUM)
-    pil=f"+{ref['pilot']}*{ref['unit']}" if i==1 else ""
-    put("fleet",f"={C}{R['new']}*{ref['bpc']}*{ref['unit']}{pil}",CUR)
-    put("fund",f"={ref['raise']}" if i==0 else 0,CUR, BLACK)
-    put("flow",f"={C}{R['ebitda']}-{C}{R['fleet']}+{C}{R["fund"]}",CUR)
-    put("endcash",f"={C}{R['flow']}" if i==0 else f"={P}{R['endcash']}+{C}{R['flow']}",CUR)
+LAYOUT = [
+    ("vol_h", "Volume", None),
+    ("ae", "Attendee-events (one band worn at one event), our sales plan", NUM),
+    ("booths", "Exhibitor booths using trO lead capture", NUM),
+    ("units", "trO Personal bands sold, our sales plan", NUM),
+    ("subs", "trO Pro subscribers (end of month)", NUM),
+    (None, None, None),
+    ("rev_h", "Revenue", None),
+    ("rev_events", "Event fees (organizer pays per attendee)", CUR),
+    ("rev_booths", "Exhibitor lead capture", CUR),
+    ("rev_personal", "trO Personal band sales", CUR),
+    ("rev_pro", "trO Pro subscriptions", CUR),
+    ("rev", "Total revenue", CUR),
+    (None, None, None),
+    ("cogs_h", "Expenses (Cost of Goods Sold)", None),
+    ("c_wear", "Event band wear (landed cost spread over its uses)", CUR),
+    ("c_logi", "Shipping, charging, cleaning and loss", CUR),
+    ("c_ai", "AI notes for events", CUR),
+    ("c_onsite", "Onsite trO tech", CUR),
+    ("c_booth", "Exhibitor support and reporting", CUR),
+    ("c_personal", "trO Personal landed cost, shipping, fees and returns", CUR),
+    ("c_pro", "trO Pro AI, cloud and payment fees", CUR),
+    ("cogs", "Total COGS", CUR),
+    ("gp", "Gross profit", CUR),
+    ("gm", "Gross margin", PCT),
+    (None, None, None),
+    ("sga_h", "SG&A (Operating Expenses)", None),
+    ("team", "Team pay, benefits and payroll tax", CUR),
+    ("rd", "Hardware R&D and firmware", CUR),
+    ("cloud", "Cloud and software", CUR),
+    ("sales", "Event sales and brand marketing", CUR),
+    ("cac", "trO Personal paid marketing", CUR),
+    ("ga", "G&A: office, legal, insurance, accounting, privacy", CUR),
+    ("one", "One-time: privacy review (Mar 2027), tooling (Apr 2027), FCC and CE (Jun 2027)", CUR),
+    ("sga", "Total SG&A", CUR),
+    (None, None, None),
+    ("ebitda", "EBITDA", CUR),
+    (None, None, None),
+    ("cash_h", "Cash", None),
+    ("needed", "Event bands needed this month", NUM),
+    ("fleet", "Event band fleet (end of month)", NUM),
+    ("new", "New event bands bought", NUM),
+    ("capex", "Event band purchases", CUR),
+    ("fund", "Funding raised", CUR),
+    ("flow", "Net cash flow", CUR),
+    ("cash", "Ending cash", CUR),
+]
+R = {}
+row_number = 3
+for key, label, _ in LAYOUT:
+    if key:
+        R[key] = row_number
+        bold = key.endswith("_h") or key in ("rev", "cogs", "gp", "sga", "ebitda", "cash")
+        ws.cell(row_number, 1, label).font = BOLD if bold else BLACK
+    row_number += 1
+FORMAT = {key: fmt for key, _, fmt in LAYOUT if key}
 
-# annual totals
-sumrows=["ae","rev","band","ai","logi","supp","cogs","gp","team","eng","cloud","sales","legal","one","sga","ebitda","new","fleet","fund","flow"]
-for y,col in YCOL.items():
-    a=L(FIRST+12*y); b=L(FIRST+12*y+11); C=L(col)
-    for k in sumrows:
-        c=ws.cell(R[k],col,f"=SUM({a}{R[k]}:{b}{R[k]})"); c.number_format=NUM if k in("ae","new") else CUR; c.font=BOLD
-    c=ws.cell(R['camp'],col,f"={b}{R['camp']}"); c.number_format=NUM; c.font=BOLD
-    c=ws.cell(R['gm'],col,f"=IF({C}{R['rev']}=0,0,{C}{R['gp']}/{C}{R['rev']})"); c.number_format=PCT; c.font=BOLD
-    c=ws.cell(R['endcash'],col,f"={b}{R['endcash']}"); c.number_format=CUR; c.font=BOLD
-ws.cell(R['camp'],1).comment=Comment("Sales plan, team estimate. Annual columns show the count at year end.","trO")
+ASSUMPTIONS = [
+    ("event_price", "Event fee per attendee, per event", CUR2, "Team estimate. Printed badges cost $1 to $3 each (vFairs) and smart-badge rental runs $22 to $33 a device (Skift Meetings). The fee replaces the badge and the door scan."),
+    ("booth_price", "Exhibitor lead capture, per booth per event", CUR, "Low end of the $255 to $685 first licence on 2026 show order forms (Vendelux)."),
+    ("booths_per_1000", "Booths sold per 1,000 attendees", NUM, "Team estimate across all events, including the many with no expo floor."),
+    ("event_band_cost", "Landed cost of one event band", CUR2, "Team estimate at 10,000-unit volume: ESP32-C3, NFC, mic, battery, LEDs and an injection-molded band."),
+    ("event_band_uses", "Events per event band before it retires", NUM, "Team estimate."),
+    ("event_logistics", "Shipping, charging, cleaning and loss, per attendee-event", CUR2, "Team estimate, including a 3% loss allowance."),
+    ("event_ai", "AI notes, per attendee-event", CUR2, "Team estimate. Speech-to-text runs only when both people agree."),
+    ("event_onsite", "Onsite trO tech, per attendee-event", CUR2, "Team estimate: one tech per event, spread over attendees."),
+    ("booth_cost", "Support and reporting, per booth", CUR, "Team estimate."),
+    ("uses_per_band_month", "Events one band can serve in a month", NUM, "Team estimate. Sets how many bands the fleet needs."),
+    ("personal_price", "trO Personal band price", CUR2, "Team estimate. Plaud NotePin sells for $159 (Plaud store)."),
+    ("personal_cost", "trO Personal landed cost, shipping, fees and returns", CUR2, "Team estimate."),
+    ("pro_price", "trO Pro subscription, per month", CUR2, "Team estimate. Plaud Pro is $99.99 a year (Sacra)."),
+    ("pro_attach", "Share of Personal buyers who subscribe to Pro", PCT, "Plaud reports that nearly 50% of device buyers move to a paid plan (AI Weekly, 2026). We plan on 45%."),
+    ("pro_churn", "Pro monthly churn", PCT, "Team estimate."),
+    ("pro_cost", "Pro AI, cloud and payment fees, per subscriber-month", CUR2, "Team estimate."),
+    ("personal_cac", "Paid marketing per Personal band sold", CUR2, "Team estimate."),
+    ("raise_amount", "Seed raise (Jan 2027)", CUR, "The ask on our use of funds slide."),
+]
+assumption_row = R["cash"] + 3
+ws.cell(assumption_row, 1, "Overall Model Assumptions").font = BOLD
+ws.cell(assumption_row, 2, "Value").font = BOLD
+ws.cell(assumption_row, 3, "Why we believe it").font = BOLD
+ref = {}
+for k, (key, label, fmt, why) in enumerate(ASSUMPTIONS):
+    r = assumption_row + 1 + k
+    ws.cell(r, 1, label).font = BLACK
+    cell = ws.cell(r, 2, A[key])
+    cell.font, cell.fill, cell.number_format = BLUE, YELLOW, fmt
+    ws.cell(r, 3, why).font = BLACK
+    ref[key] = f"$B${r}"
 
-ws.column_dimensions['A'].width=58; ws.column_dimensions['C'].width=14
-for col in range(2,YCOL[2]+1): ws.column_dimensions[L(col)].width=max(ws.column_dimensions[L(col)].width or 0,12)
-ws.column_dimensions['C'].width=12
-ws.freeze_panes="B3"
-for r in range(R['asum_h']+1,R['asum_h']+1+len(AS)): ws.cell(r,3).alignment=Alignment(wrap_text=False)
+PROSE = [
+    "How to read this sheet: blue numbers are typed-in assumptions, black numbers are formulas and green numbers link to another sheet. Yellow cells are the levers.",
+    "trO Events: organizers pay a fee for every attendee who wears a trO band. The band is the ticket at the door and the networking tool inside. Bands come back at the exit.",
+    "Exhibitors can add lead capture: every attendee who taps their booth band lands in their lead list, with notes when both people agree.",
+    "trO Personal: a band people buy and keep. It works as the ticket at any trO event and as an everyday contact and notes band. trO Pro adds unlimited AI notes.",
+    "Row 4 (attendee-events) and row 6 (Personal bands) are our sales plan. They grow from pilots in early 2027 with a spring and fall conference season.",
+    "Event band purchases are cash, not EBITDA. We buy bands as the fleet grows and spread each band's cost over its uses in COGS.",
+    "SG&A rows are monthly budgets typed in by year: about 8 people in 2027, 16 in 2028 and 24 in 2029. Personal paid marketing scales with units sold.",
+]
+for i, text in enumerate(PROSE):
+    ws.cell(assumption_row + len(ASSUMPTIONS) + 2 + i, 1, text).font = BLACK
 
-# Use of funds sheet
-u=wb.create_sheet("Use of Funds")
-u["A1"]="Use of funds: where the $750K pre-seed goes, Jan 2027 to Dec 2028"; u["A1"].font=Font(name=F,bold=True,size=13)
-u["A2"]="Spending by category over the first 24 months, pulled from the Pro Forma sheet. Revenue earned in the same months becomes our reserve."; u["A2"].font=BLACK
-pf="'Pro Forma'"; a=L(FIRST); b=L(FIRST+23)
-cats=[("Team pay",[R['team']],"Stipends for our five founders, then a first engineer in 2028"),
-      ("Product: firmware, certification and cloud",[R['eng'],R['cloud']],"Plus the FCC certification in the one-time row"),
-      ("Band fleet and event operations",None,"Bands bought for each campus, plus COGS"),
-      ("Campus sales and marketing",[R['sales']],"Demo events, travel and campus partnerships"),
-      ("Legal, privacy and insurance",[R['legal']],"Plus the consent law review in the one-time row")]
-for j,h in enumerate(["Category","Amount","Share","What it covers"]):
-    c=u.cell(4,1+j,h); c.font=BOLD; c.fill=HEAD
-for k,(name,rows_,what) in enumerate(cats):
-    r=5+k; u.cell(r,1,name).font=BLACK; u.cell(r,4,what).font=BLACK
-    if name.startswith("Band"):
-        f=f"=SUM({pf}!{a}{R['fleet']}:{b}{R['fleet']})+SUM({pf}!{a}{R['cogs']}:{b}{R['cogs']})"
-    else:
-        f="="+"+".join(f"SUM({pf}!{a}{x}:{b}{x})" for x in rows_)
-    if name.startswith("Product"): f+=f"+{pf}!G{R['one']}"   # Jun 2027 FCC
-    if name.startswith("Legal"): f+=f"+{pf}!D{R['one']}"     # Mar 2027 review
-    c=u.cell(r,2,f); c.number_format=CUR; c.font=Font(name=F,color="008000")
-tot=5+len(cats)
-u.cell(tot,1,"Total spending, 24 months").font=BOLD
-c=u.cell(tot,2,f"=SUM(B5:B{tot-1})"); c.number_format=CUR; c.font=BOLD
-for k in range(len(cats)):
-    c=u.cell(5+k,3,f"=B{5+k}/$B${tot}"); c.number_format=PCT; c.font=BLACK
-u.cell(tot+1,1,"Revenue earned over the same 24 months").font=BLACK
-c=u.cell(tot+1,2,f"=SUM({pf}!{a}{R['rev']}:{b}{R['rev']})"); c.number_format=CUR; c.font=Font(name=F,color="008000")
-u.cell(tot+2,1,"Cash left at Dec 2028 (reserve for the 2029 seed round)").font=BOLD
-c=u.cell(tot+2,2,f"={pf}!{b}{R['endcash']}"); c.number_format=CUR; c.font=Font(name=F,bold=True,color="008000")
-u.cell(tot+3,1,"Lowest cash balance in the 36 months").font=BLACK
-c=u.cell(tot+3,2,f"=MIN({pf}!{L(FIRST)}{R['endcash']}:{L(LASTC)}{R['endcash']})"); c.number_format=CUR; c.font=Font(name=F,color="008000")
-u.cell(tot+5,1,"Milestones by Dec 2028").font=BOLD
-for k,t in enumerate(["15 paying campuses (Pro Forma row 4)","$480K annual revenue run rate at Dec 2028 (15 campuses x 8,000 attendee-events x $4)","FCC-certified band in production, 9,000+ bands in the field"]):
-    u.cell(tot+6+k,1,t).font=BLACK
-u.column_dimensions['A'].width=58; u.column_dimensions['B'].width=14; u.column_dimensions['C'].width=10; u.column_dimensions['D'].width=52
 
-# Market size sheet
-m=wb.create_sheet("TAM SAM SOM")
-m["A1"]="Market size: TAM, SAM and SOM at $4 per attendee, per event"; m["A1"].font=Font(name=F,bold=True,size=13)
-hdr=["Market","Who","Count","Attendee-events per year","Price","Annual market","Source"]
-for j,h in enumerate(hdr):
-    c=m.cell(3,1+j,h); c.font=BOLD; c.fill=HEAD
-data=[("TAM","Every business-event participant worldwide, 2025",1_650_000_000,1,"EIC and Oxford Economics, 2026 Global Economic Significance of Business Events"),
-      ("SAM","U.S. four-year degree-granting colleges, 2023-24",2691,f"={pf}!{ref['aepc']}","NCES IPEDS, 2023-24 (count); attendee-events per campus is a team estimate"),
-      ("SOM","Paying campuses we plan to reach by Dec 2029",f"={pf}!{L(LASTC)}{R['camp']}",f"={pf}!{ref['aepc']}","Our pro forma sales plan (team estimate)")]
-for k,(n,who,cnt,per,src) in enumerate(data):
-    r=4+k
-    m.cell(r,1,n).font=BOLD; m.cell(r,2,who).font=BLACK
-    c=m.cell(r,3,cnt); c.number_format=NUM; c.font=BLUE if isinstance(cnt,int) else Font(name=F,color="008000")
-    c=m.cell(r,4,per); c.number_format=NUM; c.font=BLUE if isinstance(per,int) else Font(name=F,color="008000")
-    c=m.cell(r,5,f"={pf}!{ref['price']}"); c.number_format=CUR2; c.font=Font(name=F,color="008000")
-    c=m.cell(r,6,f"=C{r}*D{r}*E{r}"); c.number_format=CUR; c.font=BLACK
-    m.cell(r,7,src).font=BLACK
-m.cell(8,1,"SOM as a share of SAM").font=BLACK
-c=m.cell(8,6,"=F6/F5"); c.number_format=PCT
-for col,w in zip("ABCDEFG",(8,48,16,22,10,18,70)): m.column_dimensions[col].width=w
+def put(key, column, value, font=BLACK):
+    cell = ws.cell(R[key], column, value)
+    cell.number_format, cell.font = FORMAT[key], font
 
-wb.save(__file__.replace('scripts/pro-forma/build_xlsx.py','trO-pro-forma.xlsx'))
 
+def fill_month(i):
+    column = FIRST + i
+    C, P = col_letter(column), col_letter(column - 1)
+    year = i // 12
+    at = lambda key: f"{C}{R[key]}"
+    put("ae", column, int(model.attendee_events[i]), BLUE)
+    put("booths", column, f"={at('ae')}*{ref['booths_per_1000']}/1000")
+    put("units", column, int(model.personal_units[i]), BLUE)
+    previous_subs = "0" if i == 0 else f"{P}{R['subs']}"
+    put("subs", column, f"={previous_subs}*(1-{ref['pro_churn']})+{at('units')}*{ref['pro_attach']}")
+    put("rev_events", column, f"={at('ae')}*{ref['event_price']}")
+    put("rev_booths", column, f"={at('booths')}*{ref['booth_price']}")
+    put("rev_personal", column, f"={at('units')}*{ref['personal_price']}")
+    put("rev_pro", column, f"={at('subs')}*{ref['pro_price']}")
+    put("rev", column, f"=SUM({C}{R['rev_events']}:{C}{R['rev_pro']})")
+    put("c_wear", column, f"={at('ae')}*{ref['event_band_cost']}/{ref['event_band_uses']}")
+    put("c_logi", column, f"={at('ae')}*{ref['event_logistics']}")
+    put("c_ai", column, f"={at('ae')}*{ref['event_ai']}")
+    put("c_onsite", column, f"={at('ae')}*{ref['event_onsite']}")
+    put("c_booth", column, f"={at('booths')}*{ref['booth_cost']}")
+    put("c_personal", column, f"={at('units')}*{ref['personal_cost']}")
+    put("c_pro", column, f"={at('subs')}*{ref['pro_cost']}")
+    put("cogs", column, f"=SUM({C}{R['c_wear']}:{C}{R['c_pro']})")
+    put("gp", column, f"={at('rev')}-{at('cogs')}")
+    put("gm", column, f"=IF({at('rev')}=0,0,{at('gp')}/{at('rev')})")
+    put("team", column, model.BUDGET["team"][year], BLUE)
+    put("rd", column, model.BUDGET["hardware_rd"][year], BLUE)
+    put("cloud", column, model.BUDGET["cloud"][year], BLUE)
+    put("sales", column, model.BUDGET["sales_marketing"][year], BLUE)
+    put("cac", column, f"={at('units')}*{ref['personal_cac']}")
+    put("ga", column, model.BUDGET["g_and_a"][year], BLUE)
+    put("one", column, model.ONE_TIME.get(i, ("", 0))[1], BLUE)
+    put("sga", column, f"=SUM({C}{R['team']}:{C}{R['one']})")
+    put("ebitda", column, f"={at('gp')}-{at('sga')}")
+    put("needed", column, f"=ROUNDUP({at('ae')}/{ref['uses_per_band_month']},0)")
+    previous_fleet = "0" if i == 0 else f"{P}{R['fleet']}"
+    put("fleet", column, f"=MAX({previous_fleet},{at('needed')})")
+    put("new", column, f"={at('fleet')}-{previous_fleet}")
+    put("capex", column, f"={at('new')}*{ref['event_band_cost']}")
+    put("fund", column, f"={ref['raise_amount']}" if i == 0 else 0)
+    put("flow", column, f"={at('ebitda')}-{at('capex')}+{at('fund')}")
+    previous_cash = "" if i == 0 else f"{P}{R['cash']}+"
+    put("cash", column, f"={previous_cash}{at('flow')}")
+
+
+for i in range(N):
+    fill_month(i)
+
+SUMMED = ["ae", "booths", "units", "rev_events", "rev_booths", "rev_personal", "rev_pro", "rev", "c_wear", "c_logi", "c_ai", "c_onsite", "c_booth", "c_personal", "c_pro",
+          "cogs", "gp", "team", "rd", "cloud", "sales", "cac", "ga", "one", "sga", "ebitda", "new", "capex", "fund", "flow"]
+for y, column in YEAR_COL.items():
+    a, b, C = col_letter(FIRST + 12 * y), col_letter(FIRST + 12 * y + 11), col_letter(column)
+    for key in SUMMED:
+        put(key, column, f"=SUM({a}{R[key]}:{b}{R[key]})", BOLD)
+    for key in ("subs", "fleet", "cash"):
+        put(key, column, f"={b}{R[key]}", BOLD)
+    put("gm", column, f"=IF({C}{R['rev']}=0,0,{C}{R['gp']}/{C}{R['rev']})", BOLD)
+ws.cell(R["subs"], 1).comment = Comment("Annual columns show the count at year end.", "trO")
+ws.column_dimensions["A"].width = 64
+for column in range(2, YEAR_COL[2] + 1):
+    ws.column_dimensions[col_letter(column)].width = 12
+ws.freeze_panes = "B3"
+
+# Use of funds: the first 24 months.
+uf = wb.create_sheet("Use of Funds")
+pf = "'Pro Forma'"
+a, b = col_letter(FIRST), col_letter(FIRST + 23)
+total = lambda key: f"SUM({pf}!{a}{R[key]}:{b}{R[key]})"
+uf["A1"] = f"Use of funds: where the ${A['raise_amount'] / 1e6:.0f}M seed goes, Jan 2027 to Dec 2028"
+uf["A1"].font = Font(name=FONT, bold=True, size=13)
+uf["A2"] = "Spending by category over the first 24 months, linked to the Pro Forma sheet. Revenue earned in the same months pays for the rest."
+CATEGORIES = [
+    ("Team", f"={total('team')}", "About 8 people in 2027 and 16 in 2028: hardware, firmware, app, event ops and sales"),
+    ("Product", f"={total('rd')}+{total('cloud')}+{pf}!E{R['one']}+{pf}!G{R['one']}", "Hardware R&D, injection-mold tooling, FCC and CE certification, cloud"),
+    ("Band fleet and event operations", f"={total('capex')}+{total('cogs')}", "Event bands for the fleet, Personal bands we sell, AI, shipping and onsite techs"),
+    ("Go to market", f"={total('sales')}+{total('cac')}", "Event sales, conference presence and Personal launch marketing"),
+    ("G&A, legal and privacy", f"={total('ga')}+{pf}!D{R['one']}", "Office, insurance, accounting and a consent and privacy law review"),
+]
+for j, header in enumerate(["Category", "Amount", "Share", "What it covers"]):
+    cell = uf.cell(4, 1 + j, header)
+    cell.font, cell.fill = BOLD, HEAD
+for k, (name, formula, detail) in enumerate(CATEGORIES):
+    r = 5 + k
+    uf.cell(r, 1, name).font = BLACK
+    cell = uf.cell(r, 2, formula)
+    cell.number_format, cell.font = CUR, GREEN
+    uf.cell(r, 4, detail).font = BLACK
+total_row = 5 + len(CATEGORIES)
+uf.cell(total_row, 1, "Total spending, 24 months").font = BOLD
+cell = uf.cell(total_row, 2, f"=SUM(B5:B{total_row - 1})")
+cell.number_format, cell.font = CUR, BOLD
+for k in range(len(CATEGORIES)):
+    cell = uf.cell(5 + k, 3, f"=B{5 + k}/$B${total_row}")
+    cell.number_format = PCT
+LINKS = [
+    ("Revenue earned over the same 24 months", f"={total('rev')}"),
+    ("Cash at Dec 2028", f"={pf}!{b}{R['cash']}"),
+    ("Lowest cash balance in the 36 months", f"=MIN({pf}!{col_letter(FIRST)}{R['cash']}:{col_letter(LAST)}{R['cash']})"),
+    ("Attendee-events in 2028", f"={pf}!{col_letter(YEAR_COL[1])}{R['ae']}"),
+    ("trO Pro subscribers at Dec 2028", f"={pf}!{b}{R['subs']}"),
+    ("Event bands in the fleet at Dec 2028", f"={pf}!{b}{R['fleet']}"),
+]
+for k, (label, formula) in enumerate(LINKS):
+    r = total_row + 1 + k
+    uf.cell(r, 1, label).font = BLACK
+    cell = uf.cell(r, 2, formula)
+    cell.number_format, cell.font = (CUR if "ash" in label or "Revenue" in label else NUM), GREEN
+uf.column_dimensions["A"].width = 44
+uf.column_dimensions["B"].width = 16
+uf.column_dimensions["C"].width = 10
+uf.column_dimensions["D"].width = 80
+
+# Market size
+ms = wb.create_sheet("TAM SAM SOM")
+ms["A1"] = "Market size for trO Events, priced at the event fee per attendee"
+ms["A1"].font = Font(name=FONT, bold=True, size=13)
+for j, header in enumerate(["Market", "Who", "Participants a year", "Price", "Annual market", "Source"]):
+    cell = ms.cell(3, 1 + j, header)
+    cell.font, cell.fill = BOLD, HEAD
+MARKET = [
+    ("TAM", "Every business-event participant worldwide, 2025", 1_645_000_000, "EIC and Oxford Economics, 2026 Global Economic Significance of Business Events"),
+    ("SAM", "Business-event participants in North America, 2025", 336_000_000, "EIC and Oxford Economics, 2026 Global Economic Significance of Business Events"),
+    ("SOM", "Attendee-events in our 2029 plan, plus exhibitor lead capture", None, "Our pro forma sales plan (team estimate)"),
+]
+for k, (name, who, participants, source) in enumerate(MARKET):
+    r = 4 + k
+    ms.cell(r, 1, name).font = BOLD
+    ms.cell(r, 2, who).font = BLACK
+    year3 = col_letter(YEAR_COL[2])
+    cell = ms.cell(r, 3, participants if participants else f"={pf}!{year3}{R['ae']}")
+    cell.number_format, cell.font = NUM, (BLUE if participants else GREEN)
+    cell = ms.cell(r, 4, f"={pf}!{ref['event_price']}")
+    cell.number_format, cell.font = CUR2, GREEN
+    market_value = f"=C{r}*D{r}" if participants else f"={pf}!{year3}{R['rev_events']}+{pf}!{year3}{R['rev_booths']}"
+    ms.cell(r, 5, market_value).number_format = CUR
+    ms.cell(r, 6, source).font = BLACK
+ms.cell(8, 1, "SOM as a share of SAM").font = BLACK
+ms.cell(8, 5, "=E6/E5").number_format = "0.00%"
+for column, width in zip("ABCDEF", (8, 60, 20, 10, 18, 72)):
+    ms.column_dimensions[column].width = width
+
+wb.save(os.path.join(ROOT, "trO-pro-forma.xlsx"))
 print("saved")

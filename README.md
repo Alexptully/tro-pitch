@@ -53,7 +53,7 @@ The address bar shows the slide number (`/#9`), so you can jump straight to the 
 - Team names, speakers and links: `src/content/config.ts`. Anything in square brackets, like `[PRO FORMA SHEET LINK]`, still needs a real value.
 - Slide text and speaker notes: `src/content/content.ts`
 - Sources: `src/content/sources.ts`
-- The pro forma: change an assumption in `scripts/pro-forma/model.py` and the matching number in `src/content/proForma.ts`, then run `python3 scripts/pro-forma/build_xlsx.py` to rebuild the spreadsheet.
+- The pro forma: change an assumption in `scripts/pro-forma/model.py`, then run `python3 scripts/pro-forma/model.py` and `python3 scripts/pro-forma/build_xlsx.py`. The first updates the numbers on the slides and the second rebuilds the spreadsheet.
 
 Before you share a change, run `npm run check`. It runs the type checker, the linter and a scan for em dashes, and it must pass.
 

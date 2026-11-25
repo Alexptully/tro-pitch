@@ -5,16 +5,7 @@ import { motion } from "motion/react";
 import { isPlaceholder, team } from "@/content/config";
 import { proFormaDetail } from "@/content/content";
 import { years } from "@/content/proForma";
-import { count, dollarsShort } from "@/lib/format";
 import { Caption, fadeReveal, Headline } from "../primitives";
-
-const cells = [
-  (year: (typeof years)[number]) => count(year.campusesAtEnd),
-  (year: (typeof years)[number]) => dollarsShort(year.revenue),
-  (year: (typeof years)[number]) => dollarsShort(year.expenses),
-  (year: (typeof years)[number]) => (year.ebitda < 0 ? `(${dollarsShort(-year.ebitda)})` : dollarsShort(year.ebitda)),
-  (year: (typeof years)[number]) => dollarsShort(year.cashAtEnd),
-];
 
 function SheetLink() {
   if (isPlaceholder(team.proFormaLink)) return <Caption className="text-fineprint">{proFormaDetail.linkLabel}: {team.proFormaLink}</Caption>;
@@ -43,12 +34,12 @@ export function ProFormaSlide() {
             </tr>
           </thead>
           <tbody>
-            {proFormaDetail.rows.map((label, row) => (
-              <tr key={label} className="border-b border-rule">
-                <td className="py-4 text-ink-muted">{label}</td>
+            {proFormaDetail.rows.map((row) => (
+              <tr key={row.label} className="border-b border-rule">
+                <td className="py-4 text-ink-muted">{row.label}</td>
                 {years.map((year) => (
-                  <td key={year.year} className={`py-4 text-right figures-tabular ${row === 1 ? "font-semibold text-accent" : "text-ink"}`}>
-                    {cells[row](year)}
+                  <td key={year.year} className={`py-4 text-right figures-tabular ${row.key ? "font-semibold text-accent" : "text-ink"}`}>
+                    {row.value(year)}
                   </td>
                 ))}
               </tr>

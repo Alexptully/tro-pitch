@@ -1,28 +1,32 @@
-import { annualRunRate, assumptions, costPerAttendeeEvent, grossMargin, totalSpendOverRunway, useOfFunds, years } from "./proForma";
-import { dollars, dollarsShort, percent } from "@/lib/format";
+import { assumptions, eventCostPerAttendee, eventMargin, personalMargin, proMargin, totalSpendOverRunway, useOfFunds, years, type Year } from "./proForma";
+import { count, dollars, dollarsShort, percent } from "@/lib/format";
 import type { SourceId } from "./sources";
 
-const price = dollars(assumptions.pricePerAttendeeEvent);
-const unitRange = `$${assumptions.bandUnitCostRange[0]} to $${assumptions.bandUnitCostRange[1]}`;
+const eventPrice = dollars(assumptions.eventPrice);
+const personalPrice = dollars(assumptions.personalPrice);
+const proPrice = dollars(assumptions.proPrice);
+const [y2027, y2028, y2029] = years;
+
+/** Rounds a count for speech and slides: 166,300 reads as "166,000". */
+const roughly = (value: number) => count(Math.round(value / 1000) * 1000);
 
 export const title = {
-  tagline: "So Trojans never miss a connection.",
-  vision: "The best networking assistant for the strongest network in the world.",
-  visionLines: ["The best networking assistant", "for the strongest network in the world."],
+  tagline: "Never lose a connection again.",
+  visionLines: ["One band gets you in the door", "and remembers everyone you meet."],
   notes: [
-    "Think about the last career fair or alumni mixer you went to. You met someone great, and by the next morning you couldn't remember their name or what you talked about. We built trO so that never happens to a Trojan again.",
-    "Our vision is the best networking assistant for the strongest network in the world. We start at USC and grow to every campus that runs professional events.",
+    "Think about the last conference you went to. You stood in line for a badge, met someone great, and by the next morning you couldn't remember their name. We built trO so that never happens again.",
+    "Our vision is one band that gets you into every professional event and remembers everyone you meet there.",
   ],
 };
 
 export const problem = {
   story: {
-    thought: "“Who was the hardware guy I met today?”",
-    caption: "By the end of a mixer, most of the names are already gone.",
+    thought: "“Who was the hardware person I met this morning?”",
+    caption: "By the end of a conference day, most of the names are already gone.",
   },
   hired: {
     value: 70,
-    headline: "Jobs come through people you know",
+    headline: "Jobs and deals come through people you know",
     caption: "of people hired in 2016 joined a company where they already had a connection",
     source: "linkedinSurvey" as SourceId,
   },
@@ -30,14 +34,19 @@ export const problem = {
     headline: "Then we lose track of the people we meet",
     value: 38,
     caption: "of professionals find it hard to stay in touch with their network",
-    alumni: 500_000,
-    alumniCaption: "living USC alumni",
+    spend: 785,
+    spendCaption: "of direct spending per business-event participant in 2025 ($1.29 trillion across 1.65 billion people)",
     source: "linkedinSurvey" as SourceId,
   },
+  lost: {
+    headline: "Every lost contact is a lost opportunity",
+    outcomes: ["A new client", "A co-founder", "A mentor", "A job offer", "A friend"],
+  },
   notes: [
-    "Here's the moment we designed for. A student leaves a mixer having met a dozen people, and on the way home she's already asking herself who the hardware guy was.",
-    "That matters because jobs come through people. In a LinkedIn survey of almost sixteen thousand members, 70% of people hired in 2016 joined a company where they already had a connection.",
-    "And keeping those connections is hard: 38% of professionals in the same survey say they struggle to stay in touch. USC has half a million living alumni, the strongest network a student could ask for, and most of what happens at our events is forgotten by morning.",
+    "Here's the moment we designed for. Someone leaves a conference having met a dozen people, and on the way to the airport they're already asking who the hardware person was.",
+    "That matters because opportunities come through people. In a LinkedIn survey of almost sixteen thousand members, 70% of people hired in 2016 joined a company where they already had a connection.",
+    "Keeping those connections is hard: 38% of professionals in the same survey struggle to stay in touch. Business events cost about 785 dollars per attendee in 2025, and most of what happens there is forgotten by morning.",
+    "Each of those forgotten names could have been a client, a co-founder, a mentor or a job offer.",
   ],
 };
 
@@ -45,26 +54,26 @@ export const customerProfile = {
   headline: "Who wears it and who pays",
   profiles: [
     {
-      id: "student",
-      who: "The student who wears it",
-      role: "USC students and young alumni at career fairs, mixers and club nights",
-      jobs: ["Meet people who can open doors", "Remember who they met and what they talked about"],
-      pains: ["Names and details blur by the end of the night", "Following up means piecing together cards, QR scans and memory"],
+      id: "attendee",
+      who: "The attendee who wears it",
+      role: "Professionals at conferences, trade shows, career fairs and meetups",
+      jobs: ["Get in fast and meet the right people", "Remember who they met and what they talked about"],
+      pains: ["Lines at check-in, then a badge that only shows a name", "Names and details blur by the end of the day"],
       gains: ["Every conversation saved, with notes", "One follow-up list the morning after"],
     },
     {
       id: "organizer",
       who: "The organizer who pays",
-      role: "Career centers, alumni associations and student organizations",
-      jobs: ["Run events that turn into jobs and mentors"],
-      pains: ["No record of who met whom once the room clears"],
-      gains: ["Proof that the event created real connections"],
+      role: "Conference organizers, associations, corporate event teams and career centers",
+      jobs: ["Get people through the door quickly", "Show sponsors and exhibitors that the event paid off"],
+      pains: ["Separate vendors for badges, door scanners and lead retrieval", "No record of who met whom once the room clears"],
+      gains: ["One band replaces the badge, the scanner and the lead app", "Proof that the event created real connections"],
     },
   ],
   columns: { jobs: "Jobs", pains: "Pains", gains: "Gains" },
   notes: [
-    "trO has two customers. The student wears it. Their job is to meet people who can open doors and to remember those conversations. Their pain is that names blur and follow-up means stitching together business cards, QR scans and memory.",
-    "The organizer pays: the career center, the alumni association, the student org. They run events so students land jobs and mentors, but once the room clears they have no record of who met whom. trO gives them that proof.",
+    "trO has two customers. The attendee wears it. They want to get in, meet the right people and remember those conversations, and today they get a line at check-in and names that blur by evening.",
+    "The organizer pays: conference companies, associations, corporate event teams and career centers. Today they buy badges, door scanning and lead retrieval from separate vendors, and they still have no record of who met whom. trO replaces all of it and gives them that record.",
   ],
 };
 
@@ -72,106 +81,131 @@ export const solution = {
   headline: "How trO works",
   steps: [
     {
-      id: "tap",
+      id: "checkin",
       number: 1,
+      name: "Check in",
+      line: "Your band is your ticket, so you tap the gate and walk in",
+      detail: "The organizer links each band to a registration. A light on the reader turns gold, and there's no badge to print or QR code to find.",
+    },
+    {
+      id: "tap",
+      number: 2,
       name: "Tap",
-      line: "Tap bracelets, and you're saved to each other's contacts",
+      line: "Tap bands, and you're saved to each other's contacts",
       detail: "Hold bands together for about a second. Both buzz, and each of you is added to the other's follow-up list.",
     },
     {
-      id: "insights",
-      number: 2,
-      name: "Insights",
+      id: "notes",
+      number: 3,
+      name: "Notes",
       line: "If both of you say yes, trO takes the notes",
       detail: "A blinking light shows that trO is taking notes. If either person said no, the tap only swaps contact info.",
     },
     {
       id: "reflect",
-      number: 3,
+      number: 4,
       name: "Reflect",
       line: "Press the button and say a note about anyone",
       detail: "trO files the voice note under the right person and sends it to you after the event.",
     },
   ],
+  gate: { label: "Checked in", event: "DevSummit 2027" },
   consent: "Yes",
-  reflectCard: { name: "Jordan Lee", note: "Voice note: ask about summer internships on the GPU tooling team" },
+  reflectCard: { name: "Jordan Lee", note: "Voice note: send her our GPU tooling demo on Monday" },
   after: {
-    label: "After the event",
     headline: "One email with everyone you met",
-    subject: "Your 12 Trojan connections from Viterbi Homecoming",
+    subject: "Your 12 connections from DevSummit 2027",
     preview: "Contact info, bios and your voice notes, sorted by person.",
     button: "Open my connections",
     card: {
       name: "Jordan Lee",
       role: "Director of Engineering",
-      bio: "Leads a GPU tooling team. Viterbi alum who mentors through the Trojan Network.",
+      bio: "Leads a GPU tooling team and is hiring two firmware engineers this spring.",
       channels: ["LinkedIn", "Email", "Portfolio", "Phone"],
       notesLabel: "Conversation notes",
       notesDetail: "AI summary, 1 voice note, follow-up idea",
       mockupLabel: "Prototype screens, sample data",
     },
   },
+  versions: {
+    headline: "Two ways to wear trO",
+    options: [
+      {
+        id: "events",
+        name: "trO Events",
+        summary: "Handed out at the door and returned at the exit",
+        price: eventPrice,
+        payer: "per attendee, paid by the organizer",
+        points: ["Works as the ticket and the badge", "Exhibitors add lead capture for their booth", "Cleaned, charged and reused for about 40 events"],
+      },
+      {
+        id: "personal",
+        name: "trO Personal",
+        summary: "Yours to keep and wear every day",
+        price: personalPrice,
+        payer: `plus ${proPrice} a month for trO Pro`,
+        points: ["Your ticket at any event that runs on trO", "Swaps contacts at coffee chats and client meetings", "Pro adds unlimited AI notes and search"],
+      },
+    ],
+  },
   hardware: {
     label: "Under the hood",
     parts: [
-      { id: "esp32", name: "Seeed ESP32", detail: "Talks to other bands and your phone" },
-      { id: "nfc", name: "NFC and LEDs", detail: "Tap to connect, and a light while notes are on" },
+      { id: "esp32", name: "ESP32-C3", detail: "Talks to other bands and your phone" },
+      { id: "nfc", name: "NFC and LEDs", detail: "Opens the gate and swaps contacts" },
       { id: "mic", name: "Mic and button", detail: "Press to talk" },
     ],
-    cost: unitRange,
-    costCaption: "per reusable band, our HackSC estimate",
+    cost: dollars(assumptions.eventBandCost),
+    costCaption: "landed cost per event band at 10,000 units (team estimate)",
   },
   notes: [
-    "When you meet someone, you tap bracelets. Both bands buzz, and you're in each other's follow-up list. Nobody pulls out a phone or spells their name.",
-    "If both people agree, trO takes notes on the conversation and a light blinks so everyone knows. If either person says no, the tap only swaps contact info. California law requires everyone's consent to record a private conversation, so we built consent into the hardware.",
+    "It starts at the door. Your band is your ticket, so you tap the gate and walk in, with no badge to print and no line at a scanner.",
+    "When you meet someone, you tap bands. Both buzz, and you're in each other's follow-up list. Nobody pulls out a phone or spells their name.",
+    "If both people agree, trO takes notes and a light blinks so everyone knows. If either says no, the tap only swaps contact info. California requires everyone's consent to record a private conversation, so we built consent into the hardware.",
     "If a thought comes to you after the conversation, press the button and say it out loud. trO files it under the right person.",
     "After the event you get one email: everyone you met, their contact info, the notes and your voice notes, sorted by person.",
-    "Our working prototype from HackSC uses a Seeed ESP32, NFC, LEDs and a microphone. We estimate each reusable band costs four to seven dollars to make.",
+    `There are two ways to wear it. trO Events bands come back at the exit, and the organizer pays ${eventPrice} per attendee. trO Personal is a ${personalPrice} band you keep: it's your ticket at any trO event and your contact swap at every coffee chat, and trO Pro adds unlimited notes for ${proPrice} a month.`,
+    `Our HackSC prototype runs on an ESP32 with NFC, LEDs and a mic. At ten thousand units we estimate each event band costs ${dollars(assumptions.eventBandCost)}.`,
   ],
 };
 
 export const vvp = {
   headline: "Never lose a connection again",
   description:
-    "trO is a wristband for professional events. Tap bands to swap contacts, let it take notes when you both agree, and wake up to one email with everyone you met.",
+    "trO is a wristband for professional events. It gets you in the door, swaps contacts with one tap, takes notes when both people agree, and sends one email with everyone you met.",
   callouts: [
-    { id: "tap", title: "One tap", detail: "Saves both people's contacts" },
+    { id: "tap", title: "One tap", detail: "Checks you in and saves both people's contacts" },
     { id: "light", title: "A visible light", detail: "Means both people agreed to notes" },
     { id: "button", title: "One button", detail: "Leaves you a voice note about anyone" },
   ] as const,
   sidebar: {
     title: "The morning after, you have",
-    items: [
-      "Contact info each person chose to share",
-      "Notes from conversations you both agreed to",
-      "Your own voice notes, filed by person",
-      "One email with all of it",
-    ],
+    items: ["Contact info each person chose to share", "Notes from conversations you both agreed to", "Your own voice notes, filed by person", "One email with all of it"],
   },
   note: "Nothing is recorded unless both people say yes.",
   notes: [
-    "This is trO on one page. One tap saves both people's contacts. A light tells everyone notes are on, and that only happens when both people agreed. One button leaves you a voice note. The next morning you have everyone you met in one email.",
+    "This is trO on one page. One tap checks you in and saves both people's contacts. A light tells everyone notes are on, and that only happens when both people agreed. One button leaves you a voice note. The next morning you have everyone you met in one email.",
   ],
 };
 
 export const uvp = {
   template: [
     { kind: "frame", text: "For" },
-    { kind: "fill", text: "USC students and alumni at professional events" },
+    { kind: "fill", text: "professionals at conferences, trade shows and career fairs" },
     { kind: "frame", text: "who" },
     { kind: "fill", text: "lose track of the people they meet," },
     { kind: "frame", text: "trO is a" },
-    { kind: "fill", text: "networking wristband" },
+    { kind: "fill", text: "wristband that doubles as the event ticket" },
     { kind: "frame", text: "that" },
     { kind: "benefit", text: "saves every contact with one tap and remembers what you talked about." },
     { kind: "frame", text: "Unlike" },
-    { kind: "fill", text: "business cards, QR codes and smart badges," },
+    { kind: "fill", text: "printed badges, QR codes and note-taking pins," },
     { kind: "frame", text: "trO" },
     { kind: "difference", text: "takes notes only when both people agree and sends one follow-up list after the event." },
   ] as const,
   label: "Geoffrey Moore's value proposition template",
   notes: [
-    "In one sentence: for USC students and alumni at professional events who lose track of the people they meet, trO is a networking wristband that saves every contact with one tap and remembers what you talked about. Unlike business cards, QR codes and smart badges, trO takes notes only when both people agree and sends one follow-up list after the event.",
+    "In one sentence: for professionals at conferences, trade shows and career fairs who lose track of the people they meet, trO is a wristband that doubles as the event ticket and saves every contact with one tap. Unlike printed badges, QR codes and note-taking pins, trO takes notes only when both people agree and sends one follow-up list after the event.",
   ],
 };
 
@@ -181,8 +215,8 @@ export const strategy = {
   headline: "trO competes on memory and consent",
   factors: [
     { label: "Cost to the attendee", action: "Reduce" },
-    { label: "Setup for the organizer", action: "Reduce" },
     { label: "Phone out mid-conversation", action: "Eliminate" },
+    { label: "Speed at the door", action: "Raise" },
     { label: "Speed of the swap", action: "Raise" },
     { label: "Everyone at the event has one", action: "Raise" },
     { label: "Remembers what was said", action: "Create" },
@@ -190,18 +224,18 @@ export const strategy = {
     { label: "Follow-up done for you", action: "Create" },
   ],
   players: [
-    { id: "cards", name: "Paper business cards", scores: [3, 2, 0, 5, 4, 0, 0, 0] },
-    { id: "qr", name: "LinkedIn QR code", scores: [0, 0, 10, 4, 5, 0, 0, 2] },
-    { id: "nfc", name: "NFC cards (Popl)", scores: [5, 3, 4, 8, 2, 1, 0, 4] },
-    { id: "badge", name: "Smart badges (Klik)", scores: [0, 8, 0, 9, 9, 1, 0, 6] },
+    { id: "qr", name: "LinkedIn QR code", scores: [0, 10, 0, 4, 5, 0, 0, 2] },
+    { id: "nfc", name: "NFC cards (Popl)", scores: [5, 4, 0, 8, 2, 1, 0, 4] },
+    { id: "ticket", name: "Ticketing apps (Eventbrite)", scores: [4, 0, 6, 0, 8, 0, 0, 0] },
+    { id: "badge", name: "Smart badges (Klik)", scores: [0, 0, 7, 9, 9, 1, 0, 6] },
     { id: "pin", name: "AI note pins (Plaud)", scores: [9, 0, 0, 0, 0, 9, 1, 4] },
-    { id: "tro", name: "trO", ours: true, scores: [0, 3, 0, 9, 9, 8, 10, 9] },
+    { id: "tro", name: "trO", ours: true, scores: [0, 0, 9, 9, 9, 8, 10, 9] },
   ] satisfies CanvasPlayer[],
   scaleLabel: "Offering level, team estimate (0 to 10)",
   legendHint: "Click a name to hide or show its line",
   notes: [
-    "This is our Blue Ocean strategy canvas. Every way people swap contacts today competes on the same thing: getting a name from one person to another. Their curves look alike.",
-    "trO eliminates the phone in the middle of the conversation, reduces the cost to students to zero, and creates three things nobody offers together: it remembers what was said, consent is built in, and the follow-up is done for you. These scores are our team's estimates.",
+    "This is our Blue Ocean strategy canvas. Today's tools each do one job: a ticket app gets you in, and a QR code gets a name across.",
+    "trO eliminates the phone mid-conversation, takes the cost off the attendee, and creates what nobody offers together: memory of what was said, built-in consent and follow-up done for you. The scores are our team's estimates.",
   ],
 };
 
@@ -210,138 +244,158 @@ export type Mark = "full" | "half" | "none";
 export const competition = {
   headline: "Only trO asks both people before it takes notes",
   columns: [
-    { id: "cards", name: "Paper cards", price: "Printing" },
     { id: "qr", name: "LinkedIn QR", price: "Free" },
     { id: "nfc", name: "Popl", price: "$7.99 a month" },
+    { id: "ticket", name: "Eventbrite", price: "$1.79 + 3.7% per paid ticket" },
     { id: "badge", name: "Klik by Bizzabo", price: "Sold to organizers" },
     { id: "pin", name: "Plaud NotePin", price: "$159 plus plans" },
-    { id: "tro", name: "trO", price: `${price} per attendee`, ours: true },
+    { id: "tro", name: "trO", price: `${eventPrice} per attendee, or ${personalPrice} to own`, ours: true },
   ],
   rows: [
     { label: "Both people opt in before notes are taken", marks: ["none", "none", "none", "none", "none", "full"] },
-    { label: "Saves notes on what was said", marks: ["none", "none", "half", "half", "full", "full"] },
-    { label: "Swap contacts without a phone", marks: ["full", "none", "half", "full", "none", "full"] },
-    { label: "Everyone at the event has one", marks: ["half", "half", "none", "full", "none", "full"] },
-    { label: "One follow-up list after the event", marks: ["none", "half", "half", "full", "half", "full"] },
+    { label: "Works as the ticket at the door", marks: ["none", "none", "full", "half", "none", "full"] },
+    { label: "Saves notes on what was said", marks: ["none", "half", "none", "half", "full", "full"] },
+    { label: "Swap contacts without a phone", marks: ["none", "half", "none", "full", "none", "full"] },
+    { label: "Everyone at the event has one", marks: ["half", "none", "full", "full", "none", "full"] },
+    { label: "One follow-up list after the event", marks: ["half", "half", "none", "full", "half", "full"] },
   ] satisfies { label: string; marks: Mark[] }[],
   priceLabel: "Price",
   legend: { full: "Yes", half: "Partly", none: "No" },
   assessment: "Marks are our team's assessment of each product's public pages.",
   notes: [
-    "Paper cards and LinkedIn QR codes swap a name and nothing else. Popl is faster, but you type your own notes. Bizzabo's Klik badges are our closest competitor: organizers hand out smart badges that swap contacts. Plaud's NotePin records conversations for $159, but only the wearer decides.",
-    "The top row is the one that matters to us: trO is the only option where both people opt in before any notes are taken.",
+    "QR codes and Popl swap a name, and you type your own notes. Eventbrite gets everyone through the door and stops there. Bizzabo's Klik smart badges are our closest competitor. Plaud's NotePin records conversations, but only the wearer decides.",
+    "The top row is the one that matters to us: trO is the only option where both people opt in before any notes are taken, and it's also the ticket.",
   ],
 };
 
-const tam = 1_650_000_000 * assumptions.pricePerAttendeeEvent;
-const sam = 2691 * assumptions.attendeeEventsPerCampusYear * assumptions.pricePerAttendeeEvent;
-const som = annualRunRate(years[2].campusesAtEnd);
+const tam = 1_645_000_000 * assumptions.eventPrice;
+const sam = 336_000_000 * assumptions.eventPrice;
+const som = y2029.eventsRevenue;
 
 export const market = {
-  headline: "From Trojans to every business event",
-  priceNote: `${price} per attendee, per event`,
+  headline: "Every business event needs a way in",
+  priceNote: `${eventPrice} per attendee, per event`,
   rings: [
     { id: "tam", label: "TAM", value: tam, line: "1.65 billion business-event participants worldwide, 2025", source: "eicStudy" as SourceId },
+    { id: "sam", label: "SAM", value: sam, line: "336 million business-event participants in North America, 2025", source: "eicStudy" as SourceId },
     {
-      id: "sam",
-      label: "SAM",
-      value: sam,
-      line: `2,691 U.S. four-year colleges, ${assumptions.attendeeEventsPerCampusYear.toLocaleString("en-US")} attendee-events each (team estimate)`,
-      source: "ncesInstitutions" as SourceId,
+      id: "som",
+      label: "SOM",
+      value: som,
+      line: `${roughly(y2029.attendeeEvents)} attendee-events and their exhibitors in our 2029 plan, ${(som / sam * 100).toFixed(2)}% of SAM`,
+      source: "proForma" as SourceId,
     },
-    { id: "som", label: "SOM", value: som, line: `${years[2].campusesAtEnd} paying campuses by the end of 2029 (our plan)`, source: "proForma" as SourceId },
   ],
+  footnote: `Every ring is priced at ${eventPrice} per attendee, per event, and counts trO Events only. Rings are not drawn to scale.`,
   notes: [
-    `We price per attendee: organizers pay ${price} for every person who wears a band at their event. Our total addressable market is every business event: 1.65 billion participants worldwide in 2025, which is about ${dollarsShort(tam)} a year.`,
-    `Our serviceable market is U.S. four-year colleges. There are 2,691 of them. At our estimate of 8,000 attendee-events a campus each year, that's about ${dollarsShort(sam)}.`,
-    `Our obtainable market is the ${years[2].campusesAtEnd} campuses in our plan by the end of 2029, about ${dollarsShort(som)} a year. That's under 2% of the serviceable market.`,
+    `At ${eventPrice} per attendee, our total addressable market is every business event in the world: 1.65 billion participants in 2025, about ${dollarsShort(tam)} a year.`,
+    `Our serviceable market is North America, where we can ship and support a band fleet: 336 million participants, about ${dollarsShort(sam)}.`,
+    `Our obtainable market is what our plan reaches in 2029: about ${roughly(y2029.attendeeEvents)} attendee-events plus exhibitor lead capture, ${dollarsShort(som)}. That's under a fifth of one percent of North America. trO Personal sales come on top of these rings.`,
   ],
 };
 
 export const businessModel = {
-  headline: `Organizers pay ${price} per attendee`,
-  unit: [
-    { id: "price", value: price, caption: "per attendee, per event, paid by the organizer" },
-    { id: "cost", value: dollars(costPerAttendeeEvent, 2), caption: "our cost: band wear, AI notes, cleaning and support" },
-    { id: "margin", value: percent(grossMargin), caption: "gross margin" },
-  ],
-  campus: {
-    value: dollarsShort(annualRunRate(1)),
-    caption: `revenue from one campus in a year, at ${assumptions.attendeeEventsPerCampusYear.toLocaleString("en-US")} attendee-events (team estimate)`,
+  headline: "Organizers pay per attendee, and professionals buy their own",
+  events: {
+    name: "trO Events",
+    price: eventPrice,
+    priceCaption: "per attendee, per event, paid by the organizer",
+    cost: dollars(eventCostPerAttendee, 2),
+    costCaption: "our cost: band wear, shipping and cleaning, AI notes and an onsite tech",
+    margin: percent(eventMargin),
+    marginCaption: "gross margin",
+    costShare: eventCostPerAttendee / assumptions.eventPrice,
+    booth: { value: dollars(assumptions.boothPrice), caption: "per exhibitor booth, per event, for lead capture" },
+  },
+  personal: {
+    name: "trO Personal",
+    items: [
+      { value: personalPrice, caption: `per band, at ${percent(personalMargin)} gross margin` },
+      { value: `${proPrice} a month`, caption: `for trO Pro, at ${percent(proMargin)} gross margin` },
+      { value: percent(assumptions.proAttach), caption: "of band buyers who subscribe (Plaud reports nearly 50%)" },
+    ],
+    source: "plaudAttach" as SourceId,
   },
   chart: {
     revenueLabel: "Revenue",
     expensesLabel: "Costs",
     profitableLabel: "Revenue covers every cost",
-    caption: "Monthly, 2027 to 2029. Events stop each summer.",
-    cashLine: (lowest: number) => `With the ${dollarsShort(assumptions.raise)} raise, cash never drops below ${dollarsShort(lowest)}.`,
+    caption: "Monthly, 2027 to 2029. Conferences slow down in summer and December.",
+    cashLine: (lowest: number) => `With the ${dollarsShort(assumptions.raise)} seed, cash never drops below ${dollarsShort(lowest)}.`,
   },
-  yearLabel: (year: (typeof years)[number]) => `${dollarsShort(year.revenue)} revenue`,
+  yearLabel: (year: Year) => `${dollarsShort(year.revenue)} revenue`,
   notes: [
-    `Students never pay. Organizers pay ${price} per attendee, per event. Each use costs us about ${dollars(costPerAttendeeEvent, 2)}, mostly cleaning and charging bands, so the gross margin is ${percent(grossMargin)}.`,
-    `Our pro forma grows from a free USC pilot in spring 2027 to ${years[0].campusesAtEnd} paying campuses by the end of 2027, ${years[1].campusesAtEnd} by the end of 2028 and ${years[2].campusesAtEnd} by the end of 2029. Revenue reaches ${dollarsShort(years[2].revenue)} in 2029, and EBITDA is close to breakeven that year. The thin line is our costs, and you can see the summer dip when campuses go quiet.`,
+    `trO earns money two ways. Organizers pay ${eventPrice} per attendee, per event, less than renting a smart badge, and it replaces the printed badge and the door scan. Each use costs us about ${dollars(eventCostPerAttendee, 2)}, a ${percent(eventMargin)} gross margin. Exhibitors add lead capture for ${dollars(assumptions.boothPrice)} a booth. Professionals buy trO Personal for ${personalPrice}, and we plan on ${percent(assumptions.proAttach)} paying ${proPrice} a month for Pro, since Plaud reports nearly half its buyers pay for a plan.`,
+    `Revenue grows from ${dollarsShort(y2027.revenue)} in 2027 to ${dollarsShort(y2028.revenue)} in 2028 and ${dollarsShort(y2029.revenue)} in 2029, with gross margin near ${percent(y2029.grossMargin)}. EBITDA turns positive in 2029 at ${dollarsShort(y2029.ebitda)}. The thin line is our costs, and you can see the summer dip when conferences go quiet.`,
   ],
 };
 
-const runRate = annualRunRate(useOfFunds.milestoneCampuses);
-
 export const funds = {
-  headline: `We're raising ${dollarsShort(useOfFunds.raise)} to reach ${useOfFunds.milestoneCampuses} campuses`,
-  ask: dollarsShort(useOfFunds.raise),
-  askCaption: `A pre-seed round that covers ${dollarsShort(totalSpendOverRunway)} of spending over the next 24 months.`,
-  milestonesLabel: "By December 2028",
+  headline: `We're raising a ${dollarsShort(useOfFunds.raise)} seed for the next 24 months`,
+  askCaption: `It covers ${dollarsShort(totalSpendOverRunway)} of spending alongside ${dollarsShort(useOfFunds.revenueOverRunway)} of revenue earned on the way.`,
+  milestonesLabel: "In 2028",
   milestones: [
-    { value: `${useOfFunds.milestoneCampuses}`, caption: "paying campuses" },
-    { value: dollarsShort(runRate), caption: "annual revenue run rate" },
-    { value: `${(Math.floor(useOfFunds.bandsInField / 100) * 100).toLocaleString("en-US")}`, caption: "FCC-certified bands in the field" },
+    { value: dollarsShort(y2028.revenue), caption: "revenue" },
+    { value: roughly(y2028.attendeeEvents), caption: "attendee-events" },
+    { value: count(Math.round((y2027.personalUnits + y2028.personalUnits) / 100) * 100), caption: "Personal bands sold to date" },
+    { value: count(Math.round(y2028.subscribersAtEnd / 100) * 100), caption: "trO Pro subscribers" },
   ],
-  reserveLine: (cash: number) => `Revenue over the two years leaves ${dollarsShort(cash)} in the bank for a 2029 seed round.`,
+  reserveLine: (cash: number) => `We reach December 2028 with ${dollarsShort(cash)} in the bank, and the plan turns EBITDA-positive in 2029.`,
   notes: [
-    `We're raising ${dollarsShort(useOfFunds.raise)} in pre-seed funding to cover 24 months. Half goes to the team: stipends for the five of us, and our first engineer in 2028. The rest pays for firmware and FCC certification, the band fleet for each campus we sign, campus sales, and a legal review of consent law.`,
-    `By December 2028 that gets us ${useOfFunds.milestoneCampuses} paying campuses and a ${dollarsShort(runRate)} annual run rate, and the revenue we earn along the way leaves about ${dollarsShort(useOfFunds.cashAtMilestone)} in the bank going into a seed round.`,
+    `We're raising a ${dollarsShort(useOfFunds.raise)} seed round to cover 24 months. Just under half goes to the team, growing to about sixteen people, and the rest pays for the band fleet, sales, tooling, certification and a privacy review.`,
+    `In 2028 that gets us to ${dollarsShort(y2028.revenue)} in revenue, about ${roughly(y2028.attendeeEvents)} attendee-events and ${count(Math.round(y2028.subscribersAtEnd / 100) * 100)} Pro subscribers. We reach December 2028 with about ${dollarsShort(useOfFunds.cashAtMilestone)} in the bank, and the plan turns profitable at the EBITDA line in 2029.`,
   ],
 };
 
 export const closing = {
-  line: title.vision,
-  signoff: "Fight on.",
+  signoff: "Thank you.",
   notes: [
-    "We're making the best networking assistant for the strongest network in the world, so USC students can reach their biggest career goals through the Trojan family. Fight on, and thank you. We're happy to take questions.",
+    "We're building one band that gets you in the door and remembers everyone you meet, so the people you meet at events turn into clients, co-founders and careers. Thank you. We're happy to take questions.",
   ],
 };
 
 export const canvas = {
   headline: "Business Model Canvas",
   blocks: {
-    partners: { title: "Key partners", items: ["USC Career Center and alumni association", "A contract band manufacturer", "Speech-to-text and AI model providers"] },
-    activities: { title: "Key activities", items: ["Firmware and app development", "Shipping, cleaning and charging band fleets", "Campus sales"] },
-    resources: { title: "Key resources", items: ["Band hardware design", "Consent-first recording system", "Founders inside the Trojan network"] },
+    partners: { title: "Key partners", items: ["Registration platforms we sync with", "A contract band manufacturer", "Speech-to-text and AI model providers", "Venues and production companies"] },
+    activities: { title: "Key activities", items: ["Firmware and app development", "Shipping, cleaning and charging the band fleet", "Event sales and onsite support"] },
+    resources: { title: "Key resources", items: ["Band hardware design", "Consent-first recording system", "The event band fleet"] },
     value: {
       title: "Value propositions",
-      items: ["Students: every contact saved with one tap, notes when both agree, one follow-up email", "Organizers: proof that events create connections"],
+      items: ["Attendees: in the door with a tap, every contact saved, notes when both agree", "Organizers: one band replaces the badge, the scanner and the lead app"],
     },
-    relationships: { title: "Customer relationships", items: ["Pilot first, then a semester plan", "Event-day support"] },
-    channels: { title: "Channels", items: ["Career center and alumni event teams", "Student org leaders", "Demos at mixers"] },
-    segments: { title: "Customer segments", items: ["Wearers: students and young alumni", "Payers: career centers, alumni groups, student orgs"] },
-    costs: { title: "Cost structure", items: ["Team pay", "Band fleet and event operations", "Cloud and AI notes", "Certification and legal"] },
-    revenue: { title: "Revenue streams", items: [`${price} per attendee, per event, paid by the organizer`, "Students never pay"] },
+    relationships: { title: "Customer relationships", items: ["Pilot event first, then an annual contract", "Event-day support", "Self-serve app for Personal owners"] },
+    channels: { title: "Channels", items: ["Direct sales to conference organizers", "Exhibitors who see trO at shows", "Online store for trO Personal"] },
+    segments: { title: "Customer segments", items: ["Payers: conference organizers, associations, corporate event teams, career centers", "Wearers: attendees, exhibitors and Personal owners"] },
+    costs: { title: "Cost structure", items: ["Team pay", "Band fleet and event operations", "Cloud and AI notes", "Certification, privacy and legal"] },
+    revenue: {
+      title: "Revenue streams",
+      items: [`${eventPrice} per attendee, per event`, `${dollars(assumptions.boothPrice)} per booth for lead capture`, `${personalPrice} per Personal band`, `${proPrice} a month for trO Pro`],
+    },
   },
   notes: ["Our Business Model Canvas, for the appendix and for questions."],
 };
 
 export const proFormaDetail = {
   headline: "Pro forma, by year",
-  rows: ["Paying campuses at year end", "Revenue", "Costs", "EBITDA", "Cash at year end"],
+  rows: [
+    { label: "Attendee-events", value: (year: Year) => count(year.attendeeEvents) },
+    { label: "Personal bands sold", value: (year: Year) => count(year.personalUnits) },
+    { label: "Revenue", value: (year: Year) => dollarsShort(year.revenue), key: true },
+    { label: "Gross margin", value: (year: Year) => percent(year.grossMargin) },
+    { label: "EBITDA", value: (year: Year) => (year.ebitda < 0 ? `(${dollarsShort(-year.ebitda)})` : dollarsShort(year.ebitda)) },
+    { label: "Cash at year end", value: (year: Year) => dollarsShort(year.cashAtEnd) },
+  ],
   assumptions: [
-    `${price} per attendee, per event`,
-    `${assumptions.attendeeEventsPerCampusYear.toLocaleString("en-US")} attendee-events per campus, per year`,
-    `$${assumptions.bandUnitCost.toFixed(2)} per band, used for ${assumptions.eventsPerBand} events`,
-    `${dollars(costPerAttendeeEvent, 2)} cost per attendee-event`,
-    `${dollarsShort(useOfFunds.raise)} raised in January 2027`,
+    `${eventPrice} per attendee, per event, at ${percent(eventMargin)} gross margin`,
+    `${dollars(assumptions.boothPrice)} per exhibitor booth for lead capture`,
+    `${dollars(assumptions.eventBandCost)} per event band, reused for ${assumptions.eventBandUses} events`,
+    `${personalPrice} Personal band, ${proPrice} a month Pro, ${percent(assumptions.proAttach)} attach`,
+    `${dollarsShort(useOfFunds.raise)} seed raised in January 2027`,
   ],
   assumptionsLabel: "Key assumptions (team estimates)",
   linkLabel: "Open the full pro forma spreadsheet",
-  notes: ["The full monthly model is in our spreadsheet. Every assumption is written out under the EBITDA line."],
+  notes: ["The full monthly model is in our spreadsheet. Every assumption is written out under the cash rows, with the comparable it came from."],
 };
 
 export const appendix = {

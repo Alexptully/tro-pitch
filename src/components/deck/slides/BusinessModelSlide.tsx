@@ -2,39 +2,56 @@
 
 import { motion } from "motion/react";
 import { businessModel } from "@/content/content";
-import { assumptions, costPerAttendeeEvent, months, useOfFunds, years } from "@/content/proForma";
+import { months, useOfFunds, years } from "@/content/proForma";
 import { easeDrawn } from "@/lib/motion";
 import { Caption, fadeReveal, Headline } from "../primitives";
 import type { SlideProps } from "../slides";
 
-/** One attendee's $4, split into what it costs us and what we keep. */
-function PriceBar() {
-  const costShare = costPerAttendeeEvent / assumptions.pricePerAttendeeEvent;
-  const [price, cost, margin] = businessModel.unit;
+/** One attendee's event fee, split into what it costs us and what we keep. */
+function EventsColumn() {
+  const { events } = businessModel;
   return (
-    <div className="w-full">
-      <div className="flex items-end justify-between">
+    <div className="w-[1000px]">
+      <h3 className="text-title font-semibold text-ink">{events.name}</h3>
+      <div className="mt-8 flex items-end justify-between">
         <div>
-          <p className="text-display font-semibold text-accent figures-tabular">{price.value}</p>
-          <Caption>{price.caption}</Caption>
+          <p className="text-display font-semibold text-accent figures-tabular">{events.price}</p>
+          <Caption>{events.priceCaption}</Caption>
         </div>
         <div className="text-right">
-          <p className="text-display font-semibold text-ink figures-tabular">{margin.value}</p>
-          <Caption>{margin.caption}</Caption>
+          <p className="text-headline font-semibold text-ink figures-tabular">{events.margin}</p>
+          <Caption>{events.marginCaption}</Caption>
         </div>
       </div>
-      <div className="mt-10 flex h-16 w-full overflow-hidden rounded-chip bg-accent">
-        <motion.div className="h-full bg-rival" initial={{ width: 0 }} animate={{ width: `${costShare * 100}%`, transition: { duration: 1.2, ease: easeDrawn, delay: 0.5 } }} />
+      <div className="mt-8 flex h-14 w-full overflow-hidden rounded-chip bg-accent">
+        <motion.div className="h-full bg-rival" initial={{ width: 0 }} animate={{ width: `${events.costShare * 100}%`, transition: { duration: 1.2, ease: easeDrawn, delay: 0.5 } }} />
       </div>
-      <div className="mt-4 flex items-baseline gap-4" style={{ width: `${Math.max(costShare * 100, 40)}%` }}>
-        <p className="text-point font-semibold text-ink-muted figures-tabular">{cost.value}</p>
-        <Caption>{cost.caption}</Caption>
+      <div className="mt-4 flex items-baseline gap-4">
+        <p className="text-point font-semibold text-ink-muted figures-tabular">{events.cost}</p>
+        <Caption>{events.costCaption}</Caption>
       </div>
-      <div className="mt-24 flex items-baseline gap-6 border-t border-rule pt-12">
-        <p className="text-headline font-semibold text-ink figures-tabular">{businessModel.campus.value}</p>
-        <Caption>{businessModel.campus.caption}</Caption>
+      <div className="mt-14 flex items-baseline gap-6 border-t border-rule pt-10">
+        <p className="text-title font-semibold text-ink figures-tabular">{events.booth.value}</p>
+        <Caption>{events.booth.caption}</Caption>
       </div>
     </div>
+  );
+}
+
+function PersonalColumn() {
+  const { personal } = businessModel;
+  return (
+    <motion.div variants={fadeReveal(0.6, 20)} className="flex-1 rounded-card bg-paper-raised p-12 shadow-lift">
+      <h3 className="text-title font-semibold text-accent">{personal.name}</h3>
+      <ul className="mt-10 space-y-10">
+        {personal.items.map((item) => (
+          <li key={item.caption}>
+            <p className="text-headline font-semibold text-ink figures-tabular">{item.value}</p>
+            <Caption className="mt-2">{item.caption}</Caption>
+          </li>
+        ))}
+      </ul>
+    </motion.div>
   );
 }
 
@@ -98,8 +115,9 @@ export function BusinessModelSlide({ step }: SlideProps) {
     <div className="stage-gutter absolute inset-0 flex flex-col">
       <Headline text={businessModel.headline} />
       {step === 0 ? (
-        <motion.div key="unit" initial="enter" animate="present" variants={fadeReveal(0.2, 20)} className="mt-20">
-          <PriceBar />
+        <motion.div key="unit" initial="enter" animate="present" variants={fadeReveal(0.2, 20)} className="mt-14 flex items-start gap-24">
+          <EventsColumn />
+          <PersonalColumn />
         </motion.div>
       ) : (
         <motion.div key="chart" initial="enter" animate="present" variants={fadeReveal(0, 0)} className="mt-10">

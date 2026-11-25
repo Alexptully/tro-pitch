@@ -33,7 +33,7 @@ function HeaderRow() {
 function FeatureRow({ row, index }: { row: (typeof competition.rows)[number]; index: number }) {
   const isKey = index === 0;
   return (
-    <motion.div variants={fadeReveal(0.2 + index * 0.08, 12)} className={`${GRID} border-t border-rule py-5`}>
+    <motion.div variants={fadeReveal(0.2 + index * 0.08, 12)} className={`${GRID} border-t border-rule py-4`}>
       <p className={isKey ? "text-point font-semibold text-ink" : "text-body text-ink-muted"}>{row.label}</p>
       {row.marks.map((mark, column) => (
         <div key={competition.columns[column].id} className="flex justify-center">
@@ -46,7 +46,7 @@ function FeatureRow({ row, index }: { row: (typeof competition.rows)[number]; in
 
 function PriceRow() {
   return (
-    <motion.div variants={fadeReveal(0.7, 12)} className={`${GRID} border-t border-rule py-5`}>
+    <motion.div variants={fadeReveal(0.7, 12)} className={`${GRID} border-t border-rule py-4`}>
       <p className="text-body text-ink-muted">{competition.priceLabel}</p>
       {competition.columns.map((column) => (
         <p key={column.id} className={`px-3 text-center text-fineprint ${column.ours ? "font-semibold text-accent" : "text-ink-muted"}`}>
@@ -61,7 +61,7 @@ export function CompetitionSlide() {
   return (
     <div className="stage-gutter absolute inset-0 flex flex-col">
       <Headline text={competition.headline} />
-      <div className="relative mt-14">
+      <div className="relative mt-10">
         <div aria-hidden className="absolute top-[-16px] right-0 bottom-[-12px] w-[calc((100%-540px)/6)] rounded-card bg-accent-wash/60" />
         <div className="relative">
           <HeaderRow />

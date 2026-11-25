@@ -23,7 +23,7 @@ Keep the slides clean: no progress bar, dots or slide numbers. Each slide's foot
 - `/print` (or the P key) is the print version, one landscape page per slide or build step, for PDF export
 - `npm run check` runs the type checker, the linter with its complexity limit, and the em dash scan. Run it before saying a task is done.
 - Work on a branch and open a pull request. Never push straight to `main`.
-- `python3 scripts/pro-forma/build_xlsx.py` rebuilds `trO-pro-forma.xlsx` from `scripts/pro-forma/model.py`. If you change an assumption there, change the matching number in `src/content/proForma.ts` in the same pull request.
+- `scripts/pro-forma/model.py` holds every pro forma input. After changing one, run `python3 scripts/pro-forma/model.py` (writes `src/content/proFormaData.json`, which the slides read through `src/content/proForma.ts`) and `python3 scripts/pro-forma/build_xlsx.py` (rebuilds `trO-pro-forma.xlsx`), and commit all three in the same pull request.
 
 ## General
 
@@ -97,7 +97,7 @@ The deck should look like a design textbook or a designer's portfolio. Take on t
 - Use real imagery: generated images, or models built in Blender or Inkscape. No stock photos and no real company logos. Refer to companies by name in text only.
 - Use animation and interactivity, and check animations frame by frame instead of assuming the CSS is right.
 - Carry detail all the way through: grain, texture, edge treatment and weight.
-- Repeat one motif across the whole deck, the way strong writers and photographers repeat an image. This deck's motif: the gold tap pulse, a glowing node that sends out rings when two bands connect. It starts as one node on the title, becomes the Trojan network on the problem slide, the tap on the solution, the market rings on TAM/SAM/SOM, and the fully lit network on the close.
+- Repeat one motif across the whole deck, the way strong writers and photographers repeat an image. This deck's motif: the gold tap pulse, a glowing node that sends out rings when two bands connect. It starts as one node on the title, becomes the network of people we meet on the problem slide (and the node it zooms into), the tap on the solution, the market rings on TAM/SAM/SOM, and the fully lit network on the close.
 
 ## Writing
 
