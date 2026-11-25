@@ -2,7 +2,7 @@
 
 This is our team's Final Venture Pitch for ACAD 183 (Product Management for Challenge-Based Innovation). It pitches trO, a wristband that saves every contact at a professional event with one tap and takes notes on the conversation only when both people agree.
 
-The presentation is a website that runs in your browser. You don't need any programming experience to run it, present it, save it as a PDF or change its words.
+The presentation is a website that runs in your browser. The live version is at **https://alexptully.github.io/tro-pitch/** and updates by itself a couple of minutes after any change lands on `main`. You don't need any programming experience to run it, present it, save it as a PDF or change its words.
 
 ## What's in this folder
 
@@ -13,7 +13,14 @@ The presentation is a website that runs in your browser. You don't need any prog
 | `CLAUDE.md` | Design and writing rules for anyone (or any Claude Code session) editing the deck |
 | `src/content/` | Every word, number and source on the slides |
 
-## Run the slideshow
+## Edit it on GitHub (no setup)
+
+1. Open the file you want to change on GitHub, for example `src/content/content.ts` for slide text and notes, or `src/content/config.ts` for team names.
+2. Click the pencil icon (**Edit this file**), make the change, then click **Commit changes**.
+3. Choose **Create a new branch for this commit and start a pull request**, then open the pull request and merge it.
+4. The **Actions** tab shows the deploy. When it turns green (about two minutes), the live site has your change. If it turns red, `npm run check` failed: usually an em dash or a typo in the code. Open the failed run to see the line.
+
+## Run the slideshow on your computer
 
 1. Install Node.js (the LTS version) from **https://nodejs.org** and restart your computer.
 2. Open Terminal (Mac) or Command Prompt (Windows) in this folder.
